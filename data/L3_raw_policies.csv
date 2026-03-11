@@ -1,0 +1,26 @@
+policy_ref,policyholder_name,dob,policy_start,policy_end,cover_type,premium_gbp,region_code,claim_flag,claim_date,vehicle_reg,notes
+POL-0001,John Smith,15/03/1985,01-Jan-2024,31-Dec-2024,Comprehensive,£852.00,LDN,Y,14/03/2024,AB12 CDE,First claim since 2021
+POL-0002,jane doe,22-08-1990,2024/01/15,2025/01/14,third party only,320,NW ,N,,,Renewed early
+POL-0003,ROBERT JOHNSON,1978.11.05,Jan 5 2024,Jan 4 2025,Fire & Theft,£541.50,YKS,Y,2024-07-22,XY99 ZZZ,High mileage vehicle
+POL-0004,Sarah O'Brien,07/07/1995,03-Mar-2024,02-Mar-2025,comprehensive,978,  SE,N,,,No claims 4 years
+POL-0005,michael chang,1988-04-12,2024-02-01,2025-01-31,Third Party Only,£298.00,SCT,N,,,student discount applied
+POL-0006,Emily Watson-Clarke,30/11/1972,01 Apr 2024,31 Mar 2025,COMPREHENSIVE,1102,LDN,Y,09/09/2024,LM34 NOP,Two claims this year
+POL-0007,David    Brown,14.02.1983,15-May-2024,14-May-2025,fire & theft,£489.00,MID,N,,,
+POL-0008,Priya Sharma,09/09/1999,01-Jun-2024,31-May-2025,Comprehensive,£912.00,LDN ,Y,20/11/2024,QR56 STU,Young driver surcharge
+POL-0009,james wilson,1965.07.30,July 1 2024,Jun 30 2025,third party only,£275.00, WLS,N,,,Retired; low mileage
+POL-0010,Fiona MacLeod,25/12/1980,01-Aug-2024,31-Jul-2025,Fire & Theft,512,SCT,N,,,Highland postcode
+POL-0011,THOMAS HARRIS,03-06-1975,Sep 1 2024,Aug 31 2025,COMPREHENSIVE,834,MID,Y,12/12/2024,VW78 XYZ,Repair ongoing
+POL-0012,Laura Bennett,1993.02.18,2024/10/01,2025/09/30,Comprehensive,£756.00,SE ,N,,,Multi-car household
+POL-0013,kevin o'sullivan,11/11/1987,01-Nov-2024,31-Oct-2025,third party only,£305.00,NW,N,,,Cash payment
+POL-0014,Natalie Green,29/02/1996,Dec 1 2024,Nov 30 2025,Fire & Theft,£467.00,YKS,Y,15/01/2025,CD90 EFG,Reported late
+POL-0015,STEVEN WRIGHT,1970-09-15,2024-03-01,2025-02-28,Comprehensive,£1045.00,LDN,N,,,Director; company vehicle
+POL-0016,Hannah Mills,08/04/2001,01 Apr 2024,31 Mar 2025,third party only,£312.00, MID,N,,,New driver; telematics
+POL-0017,chris taylor,22.07.1991,15-Jun-2024,14-Jun-2025,FIRE & THEFT,£523.00,WLS,N,,,Agreed value policy
+POL-0018,Amanda Foster,1984-12-03,2024/07/01,2025/06/30,Comprehensive,£889.00,SE,Y,03/03/2025,HI12 JKL,Third party only damage
+POL-0019,Peter  Clarke,17/05/1968,Aug 1 2024,Jul 31 2025,THIRD PARTY ONLY,£258.00,SCT,N,,,Classic car; limited use
+POL-0020,Rachel Kim,05.01.2000,2024-09-01,2025-08-31,comprehensive,£678.00,LDN,Y,25/01/2025,MN34 OPQ,First claim
+POL-0021,MARK DAVIES,30/06/1979,01-Oct-2024,30-Sep-2025,Fire & Theft,504,NW,N,,,Business use declared
+POL-0022,Sophie Turner,1996-08-14,Nov 1 2024,Oct 31 2025,Comprehensive,£823.00,YKS,N,,,Joint policy; two drivers
+POL-0023,daniel robinson,12/12/1988,01-Dec-2024,30-Nov-2025,third party only,£289.00,MID,N,,,
+POL-0024,Grace Thompson,07.03.1975,2024/05/01,2025/04/30,COMPREHENSIVE,£934.00,SE,Y,11/08/2024,RS56 TUV,Windscreen only
+POL-0025,PAUL ANDERSON,19/09/1963,Jun 1 2024,May 31 2025,fire & theft,£445.00,WLS,N,,,Early retirement; part-time use

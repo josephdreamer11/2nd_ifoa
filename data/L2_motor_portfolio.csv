@@ -1,0 +1,101 @@
+policy_id,policy_class,region,vehicle_age,annual_premium_gbp,claim_made,claim_cost_gbp,exposure_months,policyholder_age,no_claims_years
+P001,Comprehensive,London,3,924,1,3850,12,34,2
+P002,Third Party Only,North West,7,298,0,0,12,52,8
+P003,Fire & Theft,Yorkshire,5,512,0,0,12,41,5
+P004,Comprehensive,London,1,1102,1,5200,12,28,0
+P005,Third Party Only,Scotland,9,275,0,0,12,67,12
+P006,Comprehensive,South East,4,876,0,0,12,45,6
+P007,Fire & Theft,Midlands,6,498,1,2100,12,39,3
+P008,Comprehensive,London,2,988,1,4400,12,31,1
+P009,Third Party Only,Wales,8,312,0,0,12,58,9
+P010,Comprehensive,South East,3,845,0,0,12,44,4
+P011,Fire & Theft,North West,4,534,0,0,12,36,2
+P012,Comprehensive,Midlands,5,798,1,3200,12,50,5
+P013,Third Party Only,London,6,345,1,1650,12,27,0
+P014,Comprehensive,Yorkshire,7,712,0,0,12,62,10
+P015,Fire & Theft,Scotland,3,489,0,0,12,43,3
+P016,Comprehensive,London,1,1245,1,6100,12,24,0
+P017,Third Party Only,South East,5,289,0,0,12,55,7
+P018,Comprehensive,North West,4,867,0,0,12,48,6
+P019,Fire & Theft,Midlands,8,445,1,1800,12,35,1
+P020,Comprehensive,London,2,1056,1,4750,12,29,0
+P021,Third Party Only,Wales,7,302,0,0,12,64,11
+P022,Comprehensive,South East,6,734,0,0,12,53,8
+P023,Fire & Theft,Yorkshire,5,501,0,0,12,40,4
+P024,Comprehensive,Midlands,3,892,1,3600,12,37,2
+P025,Third Party Only,London,4,358,1,1400,12,32,1
+P026,Comprehensive,Scotland,8,645,0,0,12,59,9
+P027,Fire & Theft,North West,2,567,0,0,12,46,3
+P028,Comprehensive,London,1,1189,1,5500,12,26,0
+P029,Third Party Only,South East,9,268,0,0,12,70,14
+P030,Comprehensive,Yorkshire,4,823,0,0,12,42,5
+P031,Fire & Theft,Midlands,6,478,1,2300,12,38,2
+P032,Comprehensive,London,3,956,1,4100,12,33,1
+P033,Third Party Only,Wales,5,315,0,0,12,56,8
+P034,Comprehensive,South East,7,698,0,0,12,61,10
+P035,Fire & Theft,Scotland,4,521,0,0,12,44,4
+P036,Comprehensive,North West,2,1012,1,4600,12,30,0
+P037,Third Party Only,London,6,342,1,1550,12,28,0
+P038,Comprehensive,Midlands,5,812,0,0,12,47,6
+P039,Fire & Theft,Yorkshire,3,543,0,0,12,41,3
+P040,Comprehensive,London,4,901,1,3900,12,35,2
+P041,Third Party Only,South East,8,278,0,0,12,65,12
+P042,Comprehensive,Scotland,6,723,0,0,12,54,7
+P043,Fire & Theft,North West,5,488,1,2050,12,37,1
+P044,Comprehensive,London,1,1320,1,6800,12,23,0
+P045,Third Party Only,Wales,7,295,0,0,12,60,10
+P046,Comprehensive,Yorkshire,3,878,0,0,12,43,4
+P047,Fire & Theft,Midlands,7,456,0,0,12,49,5
+P048,Comprehensive,South East,4,851,1,3500,12,39,3
+P049,Third Party Only,London,5,368,1,1700,12,31,1
+P050,Comprehensive,North West,6,756,0,0,12,57,8
+P051,Comprehensive,London,2,1078,1,4900,12,27,0
+P052,Third Party Only,Scotland,8,281,0,0,12,66,13
+P053,Fire & Theft,Yorkshire,4,515,0,0,12,42,4
+P054,Comprehensive,South East,5,834,1,3300,12,46,5
+P055,Third Party Only,Midlands,7,308,0,0,12,53,9
+P056,Comprehensive,London,3,967,1,4200,12,34,2
+P057,Fire & Theft,Wales,6,474,1,2150,12,36,1
+P058,Comprehensive,North West,1,1156,0,0,12,29,0
+P059,Third Party Only,South East,9,272,0,0,12,68,13
+P060,Comprehensive,Yorkshire,4,845,0,0,12,44,5
+P061,Fire & Theft,Scotland,5,498,0,0,12,40,3
+P062,Comprehensive,Midlands,7,701,0,0,12,60,9
+P063,Third Party Only,London,4,352,1,1600,12,30,1
+P064,Comprehensive,South East,2,1034,1,4700,12,32,0
+P065,Fire & Theft,North West,3,556,0,0,12,45,4
+P066,Comprehensive,London,5,889,1,3700,12,38,3
+P067,Third Party Only,Wales,6,298,0,0,12,62,11
+P068,Comprehensive,Scotland,8,634,0,0,12,56,8
+P069,Fire & Theft,Yorkshire,7,462,1,1950,12,35,1
+P070,Comprehensive,Midlands,3,912,1,3800,12,36,2
+P071,Third Party Only,South East,5,285,0,0,12,63,10
+P072,Comprehensive,London,1,1278,1,6300,12,25,0
+P073,Fire & Theft,North West,4,509,0,0,12,43,4
+P074,Comprehensive,Yorkshire,6,767,0,0,12,51,7
+P075,Third Party Only,London,8,325,1,1450,12,29,0
+P076,Comprehensive,South East,4,856,0,0,12,47,6
+P077,Fire & Theft,Midlands,5,482,1,2200,12,38,2
+P078,Comprehensive,Wales,7,689,0,0,12,58,9
+P079,Third Party Only,Scotland,6,311,0,0,12,55,8
+P080,Comprehensive,London,2,1023,1,4550,12,31,1
+P081,Comprehensive,North West,5,823,0,0,12,49,6
+P082,Third Party Only,Yorkshire,7,289,0,0,12,64,11
+P083,Fire & Theft,South East,3,534,0,0,12,41,3
+P084,Comprehensive,London,4,934,1,4050,12,37,3
+P085,Third Party Only,Midlands,8,275,0,0,12,69,13
+P086,Comprehensive,Scotland,6,734,0,0,12,54,7
+P087,Fire & Theft,Wales,4,496,1,2250,12,39,2
+P088,Comprehensive,London,1,1345,1,7000,12,22,0
+P089,Third Party Only,South East,5,295,0,0,12,61,10
+P090,Comprehensive,Yorkshire,3,867,1,3450,12,40,3
+P091,Fire & Theft,North West,6,471,0,0,12,46,4
+P092,Comprehensive,Midlands,4,878,0,0,12,48,6
+P093,Third Party Only,London,7,338,1,1500,12,28,0
+P094,Comprehensive,South East,5,845,1,3250,12,44,4
+P095,Fire & Theft,Scotland,3,542,0,0,12,42,4
+P096,Comprehensive,London,2,1089,1,5000,12,30,0
+P097,Third Party Only,Wales,8,285,0,0,12,67,12
+P098,Comprehensive,Yorkshire,6,756,0,0,12,55,8
+P099,Fire & Theft,Midlands,5,487,1,2100,12,37,2
+P100,Comprehensive,London,3,945,1,4150,12,36,2

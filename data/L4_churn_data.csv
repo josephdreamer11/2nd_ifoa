@@ -1,0 +1,121 @@
+customer_id,join_date,churn_date,churn_flag,age,gender,product_type,premium_annual,tenure_months,region,payment_method,num_claims,last_claim_date,nps_score,channel
+C0001,2020-03-15,2023-08-01,1,34,M,Motor,852,41,London,Direct Debit,1,2023-05-12,6,Online
+C0002,2019-11-01,,0,52,F,Home,1245,50,South East,Credit Card,0,,8,Branch
+C0003,2021-06-20,2023-11-30,1,28,M,Motor,478,29,North West,Direct Debit,2,2023-10-01,3,Online
+C0004,2018-02-10,,0,61,F,Life,2340,82,Scotland,Direct Debit,0,,9,Branch
+C0005,2022-01-05,2023-04-15,1,23,M,Motor,312,15,London,Credit Card,0,,2,Online
+C0006,2017-09-22,,0,45,F,Home,987,76,Midlands,Direct Debit,1,2022-11-03,7,Branch
+C0007,2021-03-08,2024-01-10,1,37,M,Life,1876,34,Yorkshire,Direct Debit,0,,5,Online
+C0008,2020-07-14,,0,58,F,Motor,634,54,South East,Credit Card,2,2023-07-22,8,Branch
+C0009,2019-05-30,2023-06-15,1,29,M,Motor,423,25,London,Credit Card,1,2023-04-10,4,Online
+C0010,2016-12-01,,0,67,F,Life,3120,97,Scotland,Direct Debit,0,,9,Branch
+C0011,2022-04-18,2023-09-20,1,31,M,Home,756,17,North West,Direct Debit,1,2023-08-05,3,Online
+C0012,2018-08-25,,0,49,F,Motor,712,77,Midlands,Credit Card,0,,7,Branch
+C0013,2021-10-11,2024-02-28,1,26,M,Motor,398,16,London,Credit Card,2,2024-01-15,2,Online
+C0014,2019-01-17,,0,55,F,Home,1102,71,Yorkshire,Direct Debit,0,,8,Branch
+C0015,2023-02-01,2023-12-15,1,22,M,Motor,289,10,South East,Credit Card,0,,1,Online
+C0016,2017-06-30,,0,63,F,Life,2780,91,London,Direct Debit,0,,9,Branch
+C0017,2022-08-09,2024-03-01,1,33,M,Home,823,19,North West,Credit Card,1,2024-01-20,4,Online
+C0018,2020-11-22,,0,44,F,Motor,589,38,Scotland,Direct Debit,1,2022-09-14,7,Branch
+C0019,2021-07-04,2023-10-10,1,27,M,Motor,445,27,Midlands,Credit Card,0,,3,Online
+C0020,2018-04-13,,0,59,F,Life,2190,81,Yorkshire,Direct Debit,0,,8,Branch
+C0021,2022-11-15,2024-04-20,1,25,M,Motor,334,17,London,Credit Card,1,2024-03-01,2,Online
+C0022,2019-08-07,,0,51,F,Home,934,65,South East,Direct Debit,0,,7,Branch
+C0023,2021-01-19,2023-07-31,1,30,M,Motor,512,30,North West,Direct Debit,2,2023-06-20,3,Online
+C0024,2017-03-28,,0,66,F,Life,3450,95,Scotland,Direct Debit,0,,9,Branch
+C0025,2022-06-03,2024-01-05,1,24,M,Motor,301,19,London,Credit Card,0,,2,Online
+C0026,2020-09-11,,0,48,F,Home,1023,52,Midlands,Credit Card,1,2021-05-30,6,Branch
+C0027,2021-04-27,2023-12-20,1,36,M,Motor,623,32,Yorkshire,Direct Debit,1,2023-11-10,4,Online
+C0028,2018-10-05,,0,57,F,Life,2560,75,London,Direct Debit,0,,8,Branch
+C0029,2022-03-14,2023-08-30,1,29,M,Motor,387,17,South East,Credit Card,0,,3,Online
+C0030,2019-06-18,,0,53,F,Motor,678,67,North West,Direct Debit,1,2022-03-15,7,Branch
+C0031,2023-01-10,2023-11-01,1,21,M,Motor,267,10,London,Credit Card,0,,1,Online
+C0032,2018-07-22,,0,62,F,Home,1156,77,Midlands,Direct Debit,0,,8,Branch
+C0033,2021-09-15,2024-02-10,1,32,M,Motor,534,29,Yorkshire,Credit Card,2,2024-01-05,3,Online
+C0034,2016-11-08,,0,70,F,Life,3890,97,Scotland,Direct Debit,0,,10,Branch
+C0035,2022-05-20,2023-10-25,1,26,M,Motor,356,17,South East,Credit Card,0,,2,Online
+C0036,2019-02-14,,0,47,F,Home,876,70,London,Direct Debit,0,,7,Branch
+C0037,2021-11-30,2024-03-15,1,35,M,Life,1654,28,North West,Direct Debit,0,,4,Online
+C0038,2020-04-08,,0,56,F,Motor,701,57,Midlands,Credit Card,1,2023-01-19,7,Branch
+C0039,2022-09-22,2024-04-01,1,28,M,Motor,412,19,Yorkshire,Credit Card,1,2024-02-10,3,Online
+C0040,2017-08-16,,0,64,F,Life,2920,89,London,Direct Debit,0,,9,Branch
+C0041,2023-03-05,2024-01-20,1,23,M,Motor,278,10,South East,Credit Card,0,,1,Online
+C0042,2019-10-29,,0,50,F,Home,1089,63,Scotland,Direct Debit,1,2022-07-11,7,Branch
+C0043,2021-05-13,2023-09-05,1,31,M,Motor,467,28,North West,Credit Card,2,2023-08-01,3,Online
+C0044,2018-01-24,,0,60,F,Life,2340,83,Midlands,Direct Debit,0,,9,Branch
+C0045,2022-07-18,2024-02-14,1,27,M,Motor,323,19,Yorkshire,Credit Card,0,,2,Online
+C0046,2020-06-02,,0,43,F,Home,912,55,London,Direct Debit,1,2023-04-22,6,Branch
+C0047,2021-08-24,2023-11-15,1,33,M,Motor,578,27,South East,Credit Card,1,2023-10-05,4,Online
+C0048,2017-05-19,,0,65,F,Life,3210,91,Scotland,Direct Debit,0,,9,Branch
+C0049,2022-10-07,2024-03-20,1,25,M,Motor,345,17,North West,Credit Card,0,,2,Online
+C0050,2019-04-23,,0,54,F,Motor,723,68,Midlands,Direct Debit,1,2021-12-08,8,Branch
+C0051,2023-04-12,2024-02-01,1,22,M,Motor,256,10,London,Credit Card,0,,1,Online
+C0052,2018-09-30,,0,58,F,Home,1034,75,Yorkshire,Direct Debit,0,,7,Branch
+C0053,2021-02-08,2023-08-20,1,30,M,Motor,489,30,South East,Credit Card,2,2023-07-15,3,Online
+C0054,2016-07-14,,0,71,F,Life,4120,101,Scotland,Direct Debit,0,,10,Branch
+C0055,2022-12-01,2024-04-10,1,24,M,Motor,312,16,North West,Credit Card,0,,2,Online
+C0056,2020-02-17,,0,46,F,Home,967,51,London,Direct Debit,1,2022-06-30,7,Branch
+C0057,2021-06-30,2024-01-25,1,34,M,Motor,601,31,Midlands,Credit Card,1,2023-12-10,4,Online
+C0058,2018-11-11,,0,61,F,Life,2670,74,Yorkshire,Direct Debit,0,,8,Branch
+C0059,2022-02-24,2023-09-15,1,28,M,Motor,378,19,South East,Credit Card,0,,3,Online
+C0060,2019-07-09,,0,53,F,Motor,645,65,Scotland,Direct Debit,1,2022-10-25,7,Branch
+C0061,2023-05-18,2024-03-05,1,21,M,Motor,245,10,London,Credit Card,0,,1,Online
+C0062,2018-06-03,,0,56,F,Home,1112,79,North West,Direct Debit,0,,8,Branch
+C0063,2021-12-14,2024-04-15,1,35,M,Motor,556,28,Midlands,Credit Card,2,2024-02-20,3,Online
+C0064,2017-02-21,,0,68,F,Life,3560,95,Yorkshire,Direct Debit,0,,9,Branch
+C0065,2022-08-30,2024-01-30,1,26,M,Motor,334,17,London,Credit Card,0,,2,Online
+C0066,2020-01-06,,0,49,F,Home,878,52,South East,Direct Debit,1,2023-02-14,6,Branch
+C0067,2021-03-22,2023-10-20,1,32,M,Motor,523,31,Scotland,Credit Card,1,2023-09-10,4,Online
+C0068,2018-12-17,,0,63,F,Life,2890,73,North West,Direct Debit,0,,9,Branch
+C0069,2022-04-05,2023-11-10,1,29,M,Motor,401,19,Midlands,Credit Card,0,,3,Online
+C0070,2019-09-13,,0,52,F,Motor,689,63,Yorkshire,Direct Debit,1,2022-05-17,7,Branch
+C0071,2023-06-01,2024-04-01,1,20,M,Motor,234,10,London,Credit Card,0,,1,Online
+C0072,2018-05-08,,0,59,F,Home,1078,79,South East,Direct Debit,0,,8,Branch
+C0073,2021-10-26,2024-02-20,1,36,M,Motor,589,28,Scotland,Credit Card,2,2024-01-08,3,Online
+C0074,2017-01-15,,0,69,F,Life,3780,96,North West,Direct Debit,0,,9,Branch
+C0075,2022-11-08,2024-03-10,1,27,M,Motor,323,16,Midlands,Credit Card,0,,2,Online
+C0076,2020-05-19,,0,45,F,Home,934,55,Yorkshire,Direct Debit,1,2023-05-01,7,Branch
+C0077,2021-07-15,2023-12-05,1,33,M,Motor,545,29,London,Credit Card,1,2023-11-20,4,Online
+C0078,2018-03-24,,0,64,F,Life,3020,81,South East,Direct Debit,0,,9,Branch
+C0079,2022-01-17,2023-07-20,1,25,M,Motor,356,18,Scotland,Credit Card,0,,2,Online
+C0080,2019-11-28,,0,55,F,Motor,712,61,North West,Direct Debit,1,2021-08-22,8,Branch
+C0081,2023-07-10,2024-04-20,1,22,M,Motor,267,10,Midlands,Credit Card,0,,1,Online
+C0082,2018-08-06,,0,57,F,Home,1023,77,Yorkshire,Direct Debit,0,,7,Branch
+C0083,2021-04-19,2023-09-25,1,31,M,Motor,512,29,London,Credit Card,2,2023-08-15,3,Online
+C0084,2016-10-12,,0,72,F,Life,4340,99,South East,Direct Debit,0,,10,Branch
+C0085,2022-06-14,2024-02-05,1,28,M,Motor,389,20,Scotland,Credit Card,0,,2,Online
+C0086,2020-03-01,,0,47,F,Home,901,57,North West,Direct Debit,1,2022-12-10,6,Branch
+C0087,2021-09-08,2024-01-15,1,34,M,Motor,567,28,Midlands,Credit Card,1,2023-12-01,4,Online
+C0088,2018-02-13,,0,60,F,Life,2560,83,Yorkshire,Direct Debit,0,,8,Branch
+C0089,2022-03-27,2023-10-05,1,26,M,Motor,367,19,London,Credit Card,0,,3,Online
+C0090,2019-08-04,,0,54,F,Motor,656,65,South East,Direct Debit,1,2022-04-19,7,Branch
+C0091,2023-08-15,2024-04-30,1,21,M,Motor,245,9,Scotland,Credit Card,0,,1,Online
+C0092,2018-07-09,,0,58,F,Home,1045,78,North West,Direct Debit,0,,8,Branch
+C0093,2021-11-22,2024-03-25,1,35,M,Motor,578,28,Midlands,Credit Card,2,2024-02-05,3,Online
+C0094,2017-04-18,,0,67,F,Life,3230,95,Yorkshire,Direct Debit,0,,9,Branch
+C0095,2022-09-12,2024-01-10,1,27,M,Motor,312,16,London,Credit Card,0,,2,Online
+C0096,2020-08-25,,0,46,F,Home,889,52,South East,Direct Debit,1,2023-06-08,6,Branch
+C0097,2021-05-06,2023-11-20,1,32,M,Motor,534,30,Scotland,Credit Card,1,2023-10-15,4,Online
+C0098,2018-12-01,,0,62,F,Life,2780,73,North West,Direct Debit,0,,8,Branch
+C0099,2022-10-19,2024-04-05,1,29,M,Motor,401,18,Midlands,Credit Card,0,,3,Online
+C0100,2019-03-07,,0,51,F,Motor,734,61,Yorkshire,Direct Debit,1,2021-11-03,7,Branch
+C0101,2023-02-28,2024-02-15,1,23,M,Motor,278,11,London,Credit Card,0,,1,Online
+C0102,2018-04-16,,0,59,F,Home,1067,79,South East,Direct Debit,0,,7,Branch
+C0103,2021-08-10,2024-01-05,1,36,M,Motor,601,29,Scotland,Credit Card,2,2023-12-15,3,Online
+C0104,2017-07-23,,0,66,F,Life,3450,89,North West,Direct Debit,0,,9,Branch
+C0105,2022-05-06,2023-12-10,1,25,M,Motor,334,19,Midlands,Credit Card,0,,2,Online
+C0106,2020-10-14,,0,48,F,Home,912,51,Yorkshire,Direct Debit,1,2022-08-26,7,Branch
+C0107,2021-01-28,2023-08-10,1,33,M,Motor,556,31,London,Credit Card,1,2023-07-01,4,Online
+C0108,2019-06-22,,0,55,F,Life,2230,67,South East,Direct Debit,0,,8,Branch
+C0109,2022-07-09,2024-02-25,1,28,M,Motor,378,19,Scotland,Credit Card,0,,3,Online
+C0110,2019-01-15,,0,53,F,Motor,701,61,North West,Direct Debit,1,2021-07-14,7,Branch
+C0111,2023-09-01,2024-04-25,1,22,M,Motor,256,8,Midlands,Credit Card,0,,1,Online
+C0112,2018-10-28,,0,61,F,Home,1134,74,Yorkshire,Direct Debit,0,,8,Branch
+C0113,2021-03-15,2023-10-30,1,30,M,Motor,490,31,London,Credit Card,2,2023-09-20,3,Online
+C0114,2016-09-19,,0,73,F,Life,4560,100,South East,Direct Debit,0,,10,Branch
+C0115,2022-11-22,2024-03-30,1,26,M,Motor,323,16,Scotland,Credit Card,0,,2,Online
+C0116,2020-07-07,,0,44,F,Home,856,57,North West,Direct Debit,1,2023-03-17,6,Branch
+C0117,2021-06-18,2024-01-20,1,35,M,Motor,578,31,Midlands,Credit Card,1,2023-12-10,4,Online
+C0118,2018-01-09,,0,63,F,Life,2910,83,Yorkshire,Direct Debit,0,,9,Branch
+C0119,2022-02-11,2023-09-01,1,27,M,Motor,356,19,London,Credit Card,0,,3,Online
+C0120,2019-10-03,,0,52,F,Motor,667,66,South East,Direct Debit,1,2022-02-28,7,Branch

@@ -1,0 +1,369 @@
+---
+title: "EDA for Churn & Retention Data"
+subtitle: "Advanced R for Actuarial Statistics — Lesson 4 Business Case"
+author: "Actuarial Analytics Team"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    theme: flatly
+    number_sections: true
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 7, fig.height = 4)
+```
+
+---
+
+# Overview
+
+Churn is one of the most commercially significant events in insurance.
+Before building any predictive model, actuaries must understand the data
+through **Exploratory Data Analysis (EDA)**.
+
+This business case conducts a structured EDA on a 120-customer portfolio,
+covering:
+
+- Univariate distributions of key variables
+- Churn rate by product type, region, and NPS band
+- Tenure analysis — how long before customers leave?
+- Bivariate analysis: premium, claims, and NPS vs churn status
+
+> **Data file:** `lesson4_churn_eda.csv` — 120 customer records across Motor,
+> Home, and Life products.
+
+---
+
+# Load & Prepare
+
+```{r load}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(lubridate)
+
+churn <- read.csv("lesson4_churn_eda.csv",
+                  stringsAsFactors = FALSE,
+                  na.strings        = c("", "NA"))
+
+churn <- churn %>%
+  mutate(
+    join_date       = as.Date(join_date),
+    churn_date      = as.Date(churn_date),
+    last_claim_date = as.Date(last_claim_date),
+    obs_date        = as.Date("2024-06-01"),
+
+    # Tenure: months from join to churn (or to obs_date if still active)
+    tenure_months   = as.integer(
+      interval(join_date,
+               if_else(!is.na(churn_date), churn_date, obs_date)) / months(1)
+    ),
+
+    churn_label  = if_else(churn_flag == 1, "Churned", "Active"),
+    product_type = factor(product_type, levels = c("Motor", "Home", "Life")),
+
+    nps_band = case_when(
+      nps_score <= 4 ~ "Detractor (0-4)",
+      nps_score <= 7 ~ "Passive (5-7)",
+      TRUE           ~ "Promoter (8-10)"
+    ),
+    nps_band = factor(nps_band,
+                      levels = c("Detractor (0-4)", "Passive (5-7)",
+                                 "Promoter (8-10)"))
+  )
+
+glimpse(churn)
+```
+
+---
+
+# Univariate EDA
+
+## Overall Churn Rate
+
+```{r churn-rate}
+churn_summary <- churn %>%
+  summarise(
+    total      = n(),
+    n_churned  = sum(churn_flag),
+    churn_rate = round(mean(churn_flag) * 100, 1)
+  )
+
+knitr::kable(churn_summary,
+             col.names = c("Total Customers", "Churned", "Churn Rate (%)"),
+             caption   = "Table 1: Overall Churn Rate")
+```
+
+```{r fig-status-bar, fig.cap="Figure 1: Active vs Churned Customer Count"}
+churn %>%
+  count(churn_label) %>%
+  ggplot(aes(x = churn_label, y = n, fill = churn_label)) +
+  geom_col(width = 0.5) +
+  geom_text(aes(label = n), vjust = -0.4, fontface = "bold") +
+  scale_fill_manual(values = c("Active" = "#1F4E79", "Churned" = "#C55A11")) +
+  labs(title = "Customer Status", x = NULL, y = "Count") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+## Premium Distribution
+
+```{r fig-premium, fig.cap="Figure 2: Annual Premium Distribution by Product"}
+ggplot(churn, aes(x = premium_annual, fill = product_type)) +
+  geom_histogram(bins = 20, colour = "white", alpha = 0.85) +
+  facet_wrap(~ product_type, scales = "free_x") +
+  scale_fill_manual(values = c("Motor"="#C55A11","Home"="#1F4E79","Life"="#2E86AB")) +
+  labs(title = "Annual Premium Distribution by Product Type",
+       x = "Annual Premium (£)", y = "Count") +
+  theme_minimal(base_size = 11) +
+  theme(legend.position = "none")
+```
+
+## Age Distribution by Churn Status
+
+```{r fig-age, fig.cap="Figure 3: Age Distribution — Churned vs Active"}
+ggplot(churn, aes(x = age, fill = churn_label)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("Active" = "#1F4E79", "Churned" = "#C55A11")) +
+  labs(title = "Age Distribution by Churn Status",
+       x = "Customer Age", y = "Density", fill = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+Churned customers skew younger. This has direct implications for
+retention targeting and pricing strategy.
+
+---
+
+# Churn Rate by Segment
+
+## By Product Type
+
+```{r churn-by-product}
+product_churn <- churn %>%
+  group_by(product_type) %>%
+  summarise(
+    n_customers = n(),
+    n_churned   = sum(churn_flag),
+    churn_rate  = round(mean(churn_flag) * 100, 1),
+    avg_tenure  = round(mean(tenure_months), 1),
+    avg_premium = round(mean(premium_annual), 0),
+    .groups = "drop"
+  )
+
+knitr::kable(product_churn,
+             col.names = c("Product", "Customers", "Churned",
+                           "Churn Rate (%)", "Avg Tenure (mo)", "Avg Premium (£)"),
+             caption   = "Table 2: Churn Metrics by Product Type")
+```
+
+```{r fig-churn-product, fig.cap="Figure 4: Churn Rate by Product Type"}
+ggplot(product_churn, aes(x = product_type, y = churn_rate, fill = product_type)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = paste0(churn_rate, "%")),
+            vjust = -0.4, fontface = "bold", size = 4) +
+  scale_fill_manual(values = c("Motor"="#C55A11","Home"="#1F4E79","Life"="#2E86AB")) +
+  labs(title = "Churn Rate by Product Type", x = NULL, y = "Churn Rate (%)") +
+  ylim(0, max(product_churn$churn_rate) * 1.2) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+## By Region
+
+```{r churn-by-region}
+region_churn <- churn %>%
+  group_by(region) %>%
+  summarise(
+    n_customers = n(),
+    churn_rate  = round(mean(churn_flag) * 100, 1),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(churn_rate))
+
+knitr::kable(region_churn,
+             col.names = c("Region", "Customers", "Churn Rate (%)"),
+             caption   = "Table 3: Churn Rate by Region")
+```
+
+## By NPS Band
+
+```{r churn-by-nps}
+nps_churn <- churn %>%
+  group_by(nps_band) %>%
+  summarise(
+    n          = n(),
+    churn_rate = round(mean(churn_flag) * 100, 1),
+    .groups    = "drop"
+  )
+
+knitr::kable(nps_churn,
+             col.names = c("NPS Band", "Customers", "Churn Rate (%)"),
+             caption   = "Table 4: Churn Rate by NPS Band")
+```
+
+---
+
+# Tenure Analysis
+
+## Tenure Distribution
+
+```{r fig-tenure, fig.cap="Figure 5: Tenure Distribution by Churn Status"}
+ggplot(churn, aes(x = tenure_months, fill = churn_label)) +
+  geom_histogram(bins = 15, colour = "white", alpha = 0.85,
+                 position = "identity") +
+  scale_fill_manual(values = c("Active" = "#1F4E79", "Churned" = "#C55A11")) +
+  labs(title = "Tenure Distribution by Churn Status",
+       x = "Tenure (months)", y = "Count", fill = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+## Tenure at Churn by Product
+
+```{r tenure-product}
+tenure_summary <- churn %>%
+  filter(churn_flag == 1) %>%
+  group_by(product_type) %>%
+  summarise(
+    n             = n(),
+    avg_tenure    = round(mean(tenure_months), 1),
+    median_tenure = median(tenure_months),
+    min_tenure    = min(tenure_months),
+    max_tenure    = max(tenure_months),
+    .groups = "drop"
+  )
+
+knitr::kable(tenure_summary,
+             col.names = c("Product", "N Churned", "Mean Tenure (mo)",
+                           "Median", "Min", "Max"),
+             caption   = "Table 5: Tenure at Churn by Product Type")
+```
+
+---
+
+# Bivariate Analysis
+
+## Premium vs Churn
+
+```{r fig-premium-box, fig.cap="Figure 6: Annual Premium by Churn Status"}
+ggplot(churn, aes(x = churn_label, y = premium_annual, fill = churn_label)) +
+  geom_boxplot(alpha = 0.8, outlier.shape = 21) +
+  scale_fill_manual(values = c("Active" = "#1F4E79", "Churned" = "#C55A11")) +
+  labs(title = "Annual Premium by Churn Status",
+       x = NULL, y = "Annual Premium (£)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+## Claims vs Churn Rate
+
+```{r claims-churn}
+claims_churn <- churn %>%
+  group_by(num_claims, churn_label) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  pivot_wider(names_from = churn_label, values_from = n,
+              values_fill = 0) %>%
+  mutate(
+    total      = Active + Churned,
+    churn_rate = round(Churned / total * 100, 1)
+  )
+
+knitr::kable(claims_churn,
+             caption = "Table 6: Churn Rate by Number of Claims")
+```
+
+## NPS Score vs Tenure
+
+```{r fig-scatter, fig.cap="Figure 7: NPS Score vs Tenure by Churn Status"}
+ggplot(churn, aes(x = tenure_months, y = nps_score,
+                  colour = churn_label, shape = product_type)) +
+  geom_point(alpha = 0.7, size = 2.5) +
+  scale_colour_manual(values = c("Active" = "#1F4E79", "Churned" = "#C55A11")) +
+  labs(title  = "NPS Score vs Tenure by Churn Status",
+       x      = "Tenure (months)", y = "NPS Score",
+       colour = "Status", shape = "Product") +
+  theme_minimal(base_size = 11)
+```
+
+---
+
+# STUDENT EXERCISE
+
+The chunk below is **intentionally incomplete** (`eval=FALSE`).
+Change to `eval=TRUE` and fill in the blanks.
+
+**Tasks:**
+
+1. Calculate churn rate by **payment method**
+2. Create a bar chart of churn rate by **acquisition channel**
+3. Compute average NPS by churn status and use **inline R** in the narrative
+
+```{r student-exercise, eval=FALSE}
+# Task 1 — Churn rate by payment method
+payment_churn <- churn %>%
+  group_by(___) %>%
+  summarise(
+    n          = n(),
+    churn_rate = round(mean(___) * 100, 1)
+  )
+knitr::kable(payment_churn, caption = "Churn Rate by Payment Method")
+
+
+# Task 2 — Bar chart by channel
+channel_churn <- churn %>%
+  group_by(___) %>%
+  summarise(churn_rate = round(mean(churn_flag) * 100, 1))
+
+ggplot(channel_churn, aes(x = ___, y = ___, fill = channel)) +
+  geom_col(width = 0.5) +
+  labs(title = "Churn Rate by Acquisition Channel",
+       x = NULL, y = "Churn Rate (%)") +
+  theme_minimal()
+
+
+# Task 3 — Average NPS by churn status
+nps_by_status <- churn %>%
+  group_by(___) %>%
+  summarise(avg_nps = round(mean(___, na.rm = TRUE), 2))
+
+nps_churned <- nps_by_status$avg_nps[nps_by_status$churn_label == "Churned"]
+nps_active  <- nps_by_status$avg_nps[nps_by_status$churn_label == "Active"]
+```
+
+Churned customers had an average NPS of **`r nps_churned`** vs
+**`r nps_active`** for active customers — a gap of
+**`r round(nps_active - nps_churned, 2)`** points.
+
+---
+
+# EDA Summary
+
+```{r eda-summary}
+overall_churn  <- round(mean(churn$churn_flag) * 100, 1)
+motor_churn    <- round(mean(churn$churn_flag[churn$product_type == "Motor"]) * 100, 1)
+life_churn     <- round(mean(churn$churn_flag[churn$product_type == "Life"]) * 100, 1)
+avg_churn_age  <- round(mean(churn$age[churn$churn_flag == 1]), 1)
+avg_active_age <- round(mean(churn$age[churn$churn_flag == 0]), 1)
+```
+
+Key findings:
+
+- Overall churn rate: **`r overall_churn`%**
+- Motor churn (**`r motor_churn`%**) is substantially higher than Life
+  (**`r life_churn`%**), indicating higher price sensitivity
+- Churned customers are younger on average (**`r avg_churn_age`** yrs)
+  than active customers (**`r avg_active_age`** yrs)
+- Lower NPS and credit card payment are associated with higher churn risk
+- Most churn occurs within the first 18–30 months of tenure
+
+> **Next step:** Lesson 5 visualises time series and retention curves from this
+> same dataset — the patterns you've identified here will become charts.
+
+---
+
+*Generated automatically with R Markdown. Re-knit with updated data to refresh.*
