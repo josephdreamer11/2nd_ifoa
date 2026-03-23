@@ -1,0 +1,1001 @@
+policyholder_id,age,gender,policy_type,annual_premium,policy_start_date,policy_duration_months,has_claim,claim_amount,region
+1,65,Male,Motor,1042.58,2020-07-03,23,0,0.0,North West
+2,59,Male,Home,385.81,2019-01-19,33,0,0.0,South East
+3,60,Male,Life,2193.58,2022-09-15,34,0,0.0,Midlands
+4,25,Male,Life,1218.68,2019-09-29,33,0,0.0,Midlands
+5,30,Female,Motor,2588.23,2020-12-19,11,0,0.0,South East
+6,49,Male,Home,2539.39,2022-01-21,30,0,0.0,London
+7,39,Female,Health,2609.36,2019-02-18,54,0,0.0,North West
+8,48,Male,Home,865.67,2020-12-29,15,0,0.0,London
+9,71,Male,Motor,1324.53,2020-06-18,47,0,0.0,North West
+10,39,Male,Life,1383.14,2018-09-29,33,0,0.0,South East
+11,70,Female,Motor,1647.92,2023-02-23,24,0,0.0,London
+12,60,Female,Life,1456.77,2022-06-24,52,1,14964.3,South East
+13,30,Male,Health,712.67,2019-10-18,60,0,0.0,Midlands
+14,63,Female,Home,2921.91,2018-02-17,20,0,0.0,South East
+15,42,Female,Motor,1473.87,2023-02-02,6,0,0.0,Scotland
+16,41,Male,Home,587.31,2021-05-07,70,0,0.0,London
+17,73,Male,Home,2402.29,2023-12-13,6,0,0.0,South East
+18,32,Female,Health,2545.5,2021-06-13,36,1,13231.14,Wales
+19,30,Female,Life,2940.56,2023-12-22,22,1,7391.59,South East
+20,41,Female,Health,2808.07,2020-04-03,45,0,0.0,North West
+21,48,Female,Health,1519.01,2020-10-12,34,1,805.0,South East
+22,62,Male,Motor,2211.17,2018-08-30,35,1,955.49,Midlands
+23,57,Male,Motor,1610.62,2019-06-26,66,0,0.0,South East
+24,51,Male,Motor,2079.25,2021-12-22,60,0,0.0,Scotland
+25,28,Male,Motor,2266.18,2019-03-24,37,1,8276.14,London
+26,36,Female,Home,2661.11,2018-11-05,62,0,0.0,Scotland
+27,31,Male,Life,1759.59,2018-03-02,17,0,0.0,Scotland
+28,35,Female,Home,877.12,2022-07-01,13,1,531.25,Midlands
+29,75,Female,Motor,2180.8,2023-06-17,25,1,3656.66,London
+30,72,Male,Life,454.35,2023-05-07,70,0,0.0,South East
+31,28,Male,Health,485.01,2018-10-06,36,0,0.0,Wales
+32,61,Male,Home,407.3,2018-12-02,59,0,0.0,South East
+33,45,Female,Motor,2233.72,2020-09-04,39,0,0.0,North West
+34,44,Female,Motor,2330.03,2018-10-25,7,0,0.0,Wales
+35,31,Male,Home,1665.89,2019-06-27,50,0,0.0,Scotland
+36,48,Female,Motor,2551.11,2021-05-24,7,0,0.0,South East
+37,67,Male,Health,662.59,2019-04-18,19,0,0.0,London
+38,43,Male,Life,849.71,2020-12-17,70,0,0.0,Scotland
+39,28,Male,Home,2539.24,2018-06-30,6,0,0.0,London
+40,41,Male,Life,1789.54,2022-10-18,7,1,14203.24,North West
+41,34,Male,Life,1872.78,2019-08-30,61,1,4969.75,Scotland
+42,75,Male,Health,867.21,2020-10-19,19,0,0.0,South East
+43,51,Male,Health,939.19,2019-10-28,28,0,0.0,London
+44,72,Female,Life,1411.63,2020-10-13,40,1,10668.53,Midlands
+45,27,Female,Motor,2504.78,2023-03-01,50,0,0.0,North West
+46,39,Male,Motor,821.45,2021-09-06,41,0,0.0,Wales
+47,42,Female,Home,1379.13,2021-09-18,9,1,14570.81,London
+48,41,Male,Motor,1473.32,2021-07-08,61,0,0.0,South East
+49,49,Male,Motor,2213.72,2018-01-07,72,0,0.0,South East
+50,71,Male,Home,488.93,2021-09-14,46,0,0.0,London
+51,44,Female,Life,1180.69,2021-04-26,22,1,10141.48,Midlands
+52,72,Male,Home,1112.56,2018-01-02,44,0,0.0,Midlands
+53,62,Female,Home,1493.83,2020-05-25,71,0,0.0,Scotland
+54,75,Male,Life,1066.22,2021-10-04,17,0,0.0,North West
+55,68,Female,Motor,837.65,2018-04-11,11,0,0.0,South East
+56,74,Male,Home,2692.57,2020-03-07,55,0,0.0,London
+57,66,Male,Health,2623.19,2019-03-13,60,1,12159.59,North West
+58,54,Male,Home,2777.17,2019-05-13,64,1,7237.33,South East
+59,60,Female,Health,2706.85,2023-08-30,60,0,0.0,South East
+60,35,Female,Home,2329.8,2021-02-09,72,0,0.0,London
+61,53,Male,Life,933.13,2021-10-07,46,0,0.0,London
+62,34,Male,Home,712.57,2020-05-26,14,0,0.0,Midlands
+63,54,Female,Motor,2548.81,2022-05-15,8,0,0.0,North West
+64,49,Female,Motor,1249.75,2022-05-17,59,0,0.0,North West
+65,63,Male,Home,1036.93,2023-06-13,9,0,0.0,North West
+66,50,Male,Life,2782.76,2023-12-28,9,0,0.0,South East
+67,67,Male,Motor,1457.25,2023-03-07,29,1,5997.01,London
+68,45,Female,Life,1323.64,2022-09-23,38,0,0.0,South East
+69,72,Male,Health,1244.89,2018-10-09,11,0,0.0,Wales
+70,37,Male,Home,944.07,2023-04-24,20,0,0.0,London
+71,69,Female,Life,753.03,2019-04-15,26,0,0.0,London
+72,26,Female,Home,2751.67,2022-03-18,56,0,0.0,London
+73,62,Male,Motor,2385.7,2019-05-11,11,0,0.0,Midlands
+74,48,Male,Home,1221.32,2022-09-17,68,1,14431.42,North West
+75,54,Male,Home,2281.25,2021-01-11,67,0,0.0,Scotland
+76,62,Female,Motor,962.84,2018-12-21,41,0,0.0,London
+77,54,Female,Motor,1634.63,2021-08-24,29,0,0.0,Midlands
+78,41,Female,Motor,1909.62,2021-02-05,7,0,0.0,London
+79,40,Female,Home,2347.04,2023-05-05,68,0,0.0,London
+80,43,Male,Home,956.92,2022-02-20,66,0,0.0,Midlands
+81,72,Female,Home,1525.11,2021-06-09,38,0,0.0,North West
+82,45,Male,Life,2867.37,2020-01-29,30,1,7520.88,North West
+83,73,Female,Health,2548.1,2021-04-28,35,0,0.0,Midlands
+84,70,Male,Motor,2930.6,2021-04-11,22,0,0.0,North West
+85,31,Male,Home,1567.37,2022-12-10,49,1,1244.96,Wales
+86,55,Male,Life,1381.91,2018-10-31,12,1,12261.56,Wales
+87,30,Male,Motor,2364.0,2020-07-13,72,0,0.0,Scotland
+88,44,Female,Motor,1976.77,2019-02-11,32,0,0.0,Midlands
+89,30,Male,Motor,1790.38,2019-10-04,6,0,0.0,North West
+90,55,Female,Motor,1077.88,2021-03-04,64,1,3884.65,Midlands
+91,75,Male,Home,1770.32,2019-09-03,40,0,0.0,London
+92,35,Female,Home,2525.45,2021-03-28,62,1,10485.83,North West
+93,42,Female,Home,1914.7,2022-11-05,47,0,0.0,London
+94,39,Male,Health,2115.16,2021-01-08,11,0,0.0,London
+95,58,Female,Health,790.02,2022-11-21,68,0,0.0,South East
+96,51,Female,Motor,582.42,2019-10-21,48,0,0.0,South East
+97,67,Female,Life,1785.26,2023-02-06,17,0,0.0,Midlands
+98,74,Female,Health,2527.3,2018-01-05,65,0,0.0,London
+99,48,Female,Home,2351.97,2020-04-13,40,0,0.0,Wales
+100,53,Female,Motor,2927.5,2020-09-07,26,0,0.0,London
+101,51,Male,Motor,2571.8,2019-04-10,65,0,0.0,North West
+102,34,Female,Health,1088.03,2021-01-24,59,0,0.0,Wales
+103,40,Female,Home,1335.68,2023-09-13,23,0,0.0,Midlands
+104,75,Female,Motor,2426.84,2020-12-30,6,0,0.0,Midlands
+105,62,Female,Health,1505.68,2023-06-07,50,0,0.0,North West
+106,49,Female,Health,2647.92,2020-09-05,55,0,0.0,North West
+107,27,Female,Life,2204.12,2022-04-11,55,0,0.0,North West
+108,66,Male,Home,399.95,2023-08-20,48,0,0.0,Scotland
+109,53,Male,Home,1533.71,2019-08-14,58,0,0.0,Wales
+110,29,Female,Life,1015.56,2022-06-17,16,0,0.0,Scotland
+111,59,Female,Health,1992.36,2023-06-22,10,0,0.0,London
+112,68,Female,Health,2316.27,2022-11-13,18,0,0.0,North West
+113,31,Female,Motor,1108.56,2018-04-29,11,0,0.0,London
+114,47,Female,Home,959.33,2022-08-15,29,1,1645.04,Scotland
+115,64,Male,Home,1874.52,2020-08-09,65,0,0.0,South East
+116,67,Male,Health,1556.18,2021-03-24,26,1,14205.92,Wales
+117,44,Female,Life,1533.46,2021-05-22,31,0,0.0,Scotland
+118,31,Male,Home,1269.19,2021-04-26,43,1,12535.54,Midlands
+119,25,Male,Health,2311.96,2021-03-18,35,0,0.0,Midlands
+120,65,Male,Home,2129.96,2019-07-15,18,0,0.0,North West
+121,44,Female,Motor,1285.13,2019-06-23,17,0,0.0,Midlands
+122,51,Male,Motor,2423.58,2022-02-07,70,0,0.0,Scotland
+123,41,Female,Health,1096.88,2021-10-19,20,0,0.0,London
+124,73,Male,Health,2255.39,2022-06-16,52,1,6221.33,Midlands
+125,32,Female,Home,2322.33,2020-12-09,54,0,0.0,Wales
+126,31,Male,Home,1972.78,2021-09-05,34,0,0.0,North West
+127,54,Female,Home,615.03,2018-07-05,10,0,0.0,South East
+128,31,Male,Health,666.29,2023-02-02,53,0,0.0,North West
+129,59,Female,Home,2261.82,2022-08-27,18,0,0.0,South East
+130,42,Male,Life,886.63,2022-12-27,36,0,0.0,London
+131,68,Female,Home,2940.17,2022-01-09,13,0,0.0,London
+132,32,Female,Motor,872.69,2018-03-29,12,0,0.0,London
+133,33,Male,Motor,2365.92,2020-04-28,33,0,0.0,London
+134,74,Male,Life,1909.15,2021-02-09,24,0,0.0,South East
+135,36,Male,Life,369.61,2018-03-02,51,0,0.0,London
+136,45,Male,Motor,441.48,2022-09-21,20,0,0.0,South East
+137,74,Female,Home,594.45,2023-08-26,34,0,0.0,London
+138,75,Female,Home,2902.87,2018-09-07,67,0,0.0,Midlands
+139,31,Female,Life,1497.62,2018-11-27,47,0,0.0,London
+140,42,Female,Home,1912.96,2021-04-22,64,0,0.0,South East
+141,75,Male,Health,2057.47,2020-05-30,61,0,0.0,London
+142,46,Female,Home,2269.95,2021-07-04,60,0,0.0,Midlands
+143,34,Female,Motor,2545.78,2019-01-17,61,1,11212.54,Scotland
+144,60,Male,Home,1816.28,2021-09-12,21,0,0.0,Scotland
+145,73,Female,Health,2246.86,2021-03-24,45,0,0.0,South East
+146,38,Male,Life,905.46,2019-03-20,50,0,0.0,Midlands
+147,73,Female,Home,2479.5,2018-04-18,40,1,4462.42,North West
+148,46,Female,Motor,2648.63,2022-06-30,14,1,9680.99,London
+149,72,Male,Home,1524.84,2019-10-07,53,0,0.0,Midlands
+150,61,Male,Health,720.07,2018-07-23,16,0,0.0,North West
+151,56,Female,Home,882.04,2023-09-30,20,0,0.0,London
+152,68,Female,Home,1132.73,2020-06-22,56,0,0.0,London
+153,38,Female,Health,2371.84,2020-11-12,43,0,0.0,London
+154,72,Female,Motor,1326.56,2020-07-31,70,0,0.0,North West
+155,47,Male,Home,2303.51,2022-11-22,8,0,0.0,London
+156,45,Female,Home,2215.65,2022-09-07,43,1,802.42,Midlands
+157,64,Female,Life,2783.38,2018-12-27,61,0,0.0,London
+158,62,Female,Home,1368.57,2021-06-24,49,0,0.0,North West
+159,29,Male,Home,823.54,2021-12-02,50,0,0.0,Scotland
+160,34,Male,Motor,991.11,2019-12-12,25,0,0.0,North West
+161,36,Female,Home,1822.09,2023-01-13,47,0,0.0,South East
+162,34,Female,Motor,1493.96,2021-05-25,41,0,0.0,Midlands
+163,29,Female,Home,401.54,2022-02-19,42,1,13031.63,Scotland
+164,64,Female,Home,1796.65,2018-06-18,63,0,0.0,South East
+165,37,Female,Home,1653.69,2018-09-11,63,1,13537.34,Midlands
+166,70,Male,Home,765.91,2020-10-11,62,0,0.0,South East
+167,64,Male,Home,2778.43,2022-05-06,58,0,0.0,North West
+168,28,Female,Motor,555.17,2022-05-03,42,0,0.0,Scotland
+169,63,Male,Motor,1873.4,2019-08-03,50,0,0.0,North West
+170,67,Female,Motor,2213.85,2018-12-14,45,0,0.0,North West
+171,46,Male,Life,2538.19,2023-11-27,17,0,0.0,Midlands
+172,48,Male,Home,786.71,2020-05-27,49,0,0.0,South East
+173,39,Male,Motor,1098.64,2019-02-19,70,0,0.0,Scotland
+174,58,Male,Life,2666.26,2019-06-21,54,1,3122.27,North West
+175,64,Male,Life,417.97,2022-02-01,36,0,0.0,South East
+176,73,Female,Motor,945.75,2023-04-06,30,0,0.0,Wales
+177,53,Female,Life,2400.93,2023-08-22,59,0,0.0,Scotland
+178,63,Male,Health,440.89,2023-05-23,53,0,0.0,London
+179,58,Male,Motor,2360.42,2021-01-22,63,0,0.0,London
+180,52,Male,Health,899.5,2023-01-22,50,0,0.0,Midlands
+181,50,Female,Motor,2985.22,2022-03-16,34,1,13996.98,Scotland
+182,66,Female,Life,671.52,2021-03-21,66,0,0.0,London
+183,70,Female,Home,314.18,2018-11-21,8,0,0.0,Scotland
+184,60,Female,Motor,1077.87,2021-05-18,21,1,6587.47,North West
+185,54,Male,Motor,2743.9,2018-03-09,71,0,0.0,North West
+186,43,Female,Motor,1252.6,2022-09-03,29,0,0.0,London
+187,48,Male,Health,1769.02,2023-09-11,8,0,0.0,South East
+188,65,Female,Health,984.86,2018-03-08,51,0,0.0,Midlands
+189,71,Male,Life,2285.0,2021-09-23,23,1,8417.2,Scotland
+190,36,Female,Health,1592.03,2020-01-17,23,1,11754.76,South East
+191,43,Male,Motor,838.57,2018-06-21,46,0,0.0,South East
+192,59,Female,Motor,2333.89,2020-02-22,42,0,0.0,North West
+193,66,Female,Motor,2458.22,2022-11-25,57,0,0.0,Scotland
+194,49,Female,Health,1639.75,2023-07-31,53,0,0.0,South East
+195,30,Female,Motor,1926.62,2020-01-10,43,0,0.0,London
+196,67,Female,Motor,1927.08,2022-10-12,27,0,0.0,Midlands
+197,27,Female,Home,1474.34,2018-08-23,15,0,0.0,Midlands
+198,57,Male,Health,685.5,2022-11-30,10,1,3921.93,North West
+199,48,Female,Health,387.44,2019-09-21,63,0,0.0,Midlands
+200,73,Male,Home,1729.54,2022-06-19,46,0,0.0,London
+201,32,Male,Life,1647.42,2022-05-05,21,0,0.0,Midlands
+202,53,Male,Health,1071.06,2023-07-05,31,1,12865.98,South East
+203,70,Female,Health,2488.39,2021-08-02,50,0,0.0,South East
+204,43,Female,Health,2221.88,2019-12-15,52,0,0.0,London
+205,37,Male,Motor,1633.86,2022-01-18,53,0,0.0,Wales
+206,33,Male,Motor,1375.03,2023-05-15,58,0,0.0,Scotland
+207,29,Male,Health,2034.31,2023-01-18,65,0,0.0,Midlands
+208,74,Male,Life,648.39,2023-08-22,13,0,0.0,South East
+209,44,Male,Motor,2823.79,2020-07-12,50,0,0.0,South East
+210,43,Male,Motor,2014.65,2021-01-29,22,0,0.0,South East
+211,30,Male,Home,1867.75,2019-12-03,49,0,0.0,South East
+212,26,Male,Motor,2031.93,2020-12-20,32,0,0.0,Midlands
+213,65,Male,Home,1993.34,2021-04-01,44,0,0.0,Scotland
+214,68,Female,Motor,497.03,2018-09-03,26,0,0.0,South East
+215,38,Female,Home,1143.97,2021-07-31,50,0,0.0,London
+216,48,Male,Motor,1559.48,2020-12-31,63,0,0.0,London
+217,43,Female,Health,1428.96,2019-10-17,47,0,0.0,North West
+218,37,Male,Home,1689.76,2023-08-05,45,0,0.0,London
+219,50,Female,Health,880.89,2021-12-16,12,1,7675.97,Scotland
+220,66,Female,Motor,322.08,2019-03-17,61,1,4334.86,Midlands
+221,50,Female,Motor,438.13,2020-03-08,52,0,0.0,London
+222,57,Female,Life,1055.25,2019-05-02,22,0,0.0,Midlands
+223,75,Female,Home,1287.14,2019-08-14,31,0,0.0,Midlands
+224,27,Male,Motor,2226.7,2023-04-25,72,0,0.0,South East
+225,57,Male,Motor,1955.28,2019-10-28,56,0,0.0,North West
+226,44,Female,Home,1676.23,2023-06-30,44,0,0.0,London
+227,46,Male,Health,1876.0,2018-04-20,66,0,0.0,North West
+228,74,Male,Life,1875.51,2019-11-30,54,1,10370.54,London
+229,69,Male,Motor,1490.8,2022-09-12,25,0,0.0,London
+230,57,Female,Health,2286.76,2018-09-13,23,0,0.0,South East
+231,67,Female,Home,1147.13,2019-12-11,64,0,0.0,Midlands
+232,47,Female,Home,819.11,2020-10-06,41,0,0.0,London
+233,44,Female,Life,2163.65,2023-06-26,46,0,0.0,South East
+234,75,Female,Motor,1848.39,2022-04-05,56,0,0.0,Wales
+235,34,Female,Motor,2879.35,2018-11-20,50,0,0.0,North West
+236,72,Female,Motor,2535.47,2021-01-15,40,1,9427.32,South East
+237,40,Male,Life,1733.81,2020-08-11,12,1,5289.26,South East
+238,68,Male,Motor,1785.95,2019-10-09,58,0,0.0,Scotland
+239,55,Female,Life,2340.96,2021-03-22,47,0,0.0,London
+240,74,Male,Life,926.99,2018-06-02,28,0,0.0,Scotland
+241,27,Female,Life,803.04,2021-03-31,10,1,8735.45,London
+242,46,Female,Home,2031.54,2023-11-18,69,0,0.0,London
+243,57,Female,Motor,2483.8,2021-09-16,26,0,0.0,North West
+244,70,Male,Motor,1210.2,2021-04-23,30,1,12914.12,Scotland
+245,52,Female,Motor,2106.99,2020-01-27,23,0,0.0,Wales
+246,25,Female,Home,1506.19,2020-12-29,48,0,0.0,North West
+247,25,Female,Life,2170.48,2018-09-12,21,0,0.0,London
+248,68,Female,Life,2024.52,2021-04-23,53,0,0.0,London
+249,33,Female,Motor,2318.88,2022-03-11,59,0,0.0,Scotland
+250,73,Male,Life,2136.92,2018-12-02,63,0,0.0,Midlands
+251,61,Male,Motor,1778.65,2023-09-02,31,0,0.0,London
+252,45,Female,Motor,854.58,2023-06-26,17,0,0.0,South East
+253,28,Female,Motor,1421.65,2018-08-25,65,0,0.0,Midlands
+254,26,Female,Motor,308.14,2020-06-11,15,1,5495.67,London
+255,28,Male,Health,1574.59,2021-03-21,58,1,2463.72,North West
+256,71,Female,Home,2706.6,2023-01-12,54,0,0.0,North West
+257,67,Male,Life,1238.98,2020-01-02,56,0,0.0,North West
+258,39,Male,Life,2941.92,2023-03-12,60,0,0.0,Scotland
+259,40,Female,Motor,1044.25,2019-04-08,10,0,0.0,Midlands
+260,74,Male,Motor,481.69,2018-05-18,63,0,0.0,North West
+261,28,Male,Life,1386.12,2020-08-17,33,0,0.0,North West
+262,33,Female,Motor,2774.27,2021-07-30,47,0,0.0,Scotland
+263,67,Male,Home,1042.92,2019-12-19,60,0,0.0,London
+264,47,Female,Life,1160.58,2022-09-02,58,1,5958.67,North West
+265,55,Male,Life,1111.99,2019-08-15,65,0,0.0,South East
+266,51,Male,Home,988.49,2021-09-14,16,0,0.0,Scotland
+267,30,Male,Motor,1318.35,2018-06-11,15,1,11544.6,North West
+268,60,Male,Home,2647.58,2021-09-25,44,0,0.0,London
+269,37,Male,Life,2336.69,2020-09-20,32,0,0.0,London
+270,45,Female,Home,1740.86,2022-01-11,45,0,0.0,South East
+271,56,Female,Motor,2949.56,2023-04-08,46,0,0.0,Midlands
+272,51,Male,Home,897.44,2019-08-21,8,0,0.0,Wales
+273,62,Female,Motor,829.72,2020-07-31,54,0,0.0,London
+274,60,Female,Motor,2518.3,2023-07-03,64,1,12027.14,London
+275,71,Female,Motor,2701.28,2018-08-29,10,0,0.0,London
+276,67,Male,Life,1413.46,2020-08-05,14,0,0.0,London
+277,57,Female,Home,1968.16,2023-06-03,68,1,8217.08,Midlands
+278,26,Female,Home,1074.06,2023-08-20,61,0,0.0,Scotland
+279,31,Male,Home,950.62,2023-11-27,38,0,0.0,Midlands
+280,50,Male,Home,1396.27,2020-09-23,34,0,0.0,Scotland
+281,30,Male,Motor,1324.01,2023-05-04,13,0,0.0,North West
+282,30,Female,Life,2041.25,2021-09-18,18,0,0.0,Scotland
+283,39,Male,Health,2169.18,2023-05-02,40,1,1578.05,Wales
+284,59,Male,Motor,2596.15,2018-03-06,32,0,0.0,North West
+285,70,Female,Health,1108.05,2020-09-11,55,0,0.0,South East
+286,49,Male,Life,2161.14,2018-11-18,70,0,0.0,Midlands
+287,31,Female,Motor,505.25,2022-06-13,47,1,4463.24,Wales
+288,56,Male,Home,2841.09,2022-11-04,29,0,0.0,North West
+289,30,Female,Life,2225.39,2018-12-03,40,1,10819.32,North West
+290,72,Female,Motor,587.69,2018-01-22,45,0,0.0,North West
+291,31,Male,Motor,1463.64,2023-09-30,58,1,1799.47,South East
+292,63,Female,Health,333.32,2022-08-22,55,0,0.0,North West
+293,60,Male,Home,757.87,2022-04-09,27,1,4866.4,South East
+294,29,Male,Home,1436.98,2023-06-07,15,0,0.0,Wales
+295,71,Female,Home,827.98,2019-03-15,23,0,0.0,Wales
+296,46,Female,Life,1189.76,2021-10-03,61,0,0.0,Scotland
+297,63,Male,Motor,1928.67,2020-04-02,67,0,0.0,Wales
+298,45,Female,Life,2008.84,2020-09-19,47,0,0.0,Scotland
+299,50,Female,Motor,1822.4,2020-01-07,9,0,0.0,South East
+300,70,Male,Home,1086.59,2018-10-11,58,0,0.0,London
+301,44,Male,Motor,716.19,2022-09-30,54,1,14865.16,South East
+302,50,Female,Home,2434.95,2022-01-12,16,1,4099.35,North West
+303,35,Male,Home,2041.58,2022-06-25,48,0,0.0,South East
+304,25,Male,Motor,1678.83,2023-10-26,34,0,0.0,Midlands
+305,74,Male,Motor,366.32,2019-03-05,43,0,0.0,Wales
+306,32,Male,Motor,1226.28,2020-04-27,72,0,0.0,South East
+307,53,Female,Motor,1110.71,2019-04-17,8,0,0.0,North West
+308,68,Male,Health,2299.32,2023-10-15,28,0,0.0,Midlands
+309,52,Female,Motor,1393.63,2020-01-26,29,0,0.0,South East
+310,26,Male,Home,1459.79,2018-01-19,33,1,11408.72,Scotland
+311,29,Male,Life,1749.6,2022-02-07,47,1,2152.35,North West
+312,56,Female,Home,1950.53,2019-04-13,50,0,0.0,South East
+313,36,Female,Health,1893.45,2019-07-03,46,1,4928.01,London
+314,69,Male,Home,1429.25,2019-07-19,55,0,0.0,South East
+315,59,Male,Home,1622.03,2019-07-29,29,0,0.0,South East
+316,28,Female,Health,1608.44,2020-03-10,55,0,0.0,South East
+317,56,Female,Life,1422.2,2022-12-24,68,1,8698.27,North West
+318,39,Female,Motor,907.08,2021-03-28,27,0,0.0,South East
+319,74,Female,Home,605.67,2019-04-13,40,0,0.0,Scotland
+320,48,Male,Life,1491.69,2020-06-14,60,1,12536.03,North West
+321,44,Male,Home,1241.16,2018-12-23,62,0,0.0,London
+322,40,Male,Life,1887.39,2021-12-07,60,1,2518.91,London
+323,38,Male,Home,1737.16,2019-11-21,47,0,0.0,Midlands
+324,61,Female,Health,1688.92,2019-01-26,23,0,0.0,North West
+325,28,Female,Health,642.6,2019-06-28,37,1,5170.4,London
+326,68,Female,Home,1859.05,2021-01-05,59,0,0.0,London
+327,75,Male,Home,2324.47,2022-02-20,64,0,0.0,Midlands
+328,25,Male,Life,1537.81,2022-01-07,14,0,0.0,Midlands
+329,52,Male,Home,1171.74,2021-03-07,49,0,0.0,London
+330,56,Female,Health,2358.09,2018-07-08,18,0,0.0,Scotland
+331,26,Male,Health,726.56,2023-02-13,6,0,0.0,Midlands
+332,69,Male,Health,1115.04,2021-01-27,17,0,0.0,Midlands
+333,48,Male,Motor,1989.13,2020-08-17,60,0,0.0,North West
+334,25,Male,Home,658.29,2020-07-15,72,0,0.0,London
+335,69,Female,Life,2968.02,2022-09-26,22,0,0.0,London
+336,30,Male,Motor,1292.42,2021-05-10,23,0,0.0,Scotland
+337,33,Male,Motor,1820.89,2019-11-04,62,0,0.0,London
+338,72,Male,Health,1963.41,2022-12-18,33,1,1956.74,North West
+339,62,Female,Home,1459.35,2019-07-27,37,0,0.0,London
+340,60,Female,Life,2164.29,2021-05-20,32,0,0.0,South East
+341,72,Female,Motor,447.34,2020-09-07,69,0,0.0,London
+342,65,Male,Home,2939.78,2022-01-19,46,1,12981.8,South East
+343,48,Male,Life,2877.02,2018-10-26,8,0,0.0,London
+344,38,Male,Health,2861.44,2022-06-19,70,0,0.0,North West
+345,74,Female,Home,1386.15,2019-09-18,41,1,1645.81,Wales
+346,34,Female,Home,2012.59,2018-09-28,45,0,0.0,North West
+347,40,Male,Motor,2796.49,2019-04-21,64,0,0.0,London
+348,67,Male,Motor,2211.33,2018-02-16,26,0,0.0,Midlands
+349,58,Female,Motor,642.71,2021-01-05,21,0,0.0,London
+350,52,Female,Home,1009.96,2018-11-12,69,0,0.0,Midlands
+351,56,Male,Home,988.81,2019-02-26,20,0,0.0,South East
+352,27,Male,Motor,1573.76,2022-04-18,25,1,14424.96,London
+353,70,Female,Motor,970.31,2021-08-03,40,0,0.0,South East
+354,32,Male,Motor,2471.71,2018-07-08,57,1,7243.87,Midlands
+355,44,Female,Motor,1533.21,2022-02-20,31,0,0.0,North West
+356,72,Male,Home,1897.57,2023-07-14,31,0,0.0,South East
+357,75,Male,Motor,2817.47,2018-04-08,35,0,0.0,North West
+358,69,Male,Health,303.95,2022-03-22,45,1,8182.31,London
+359,56,Male,Health,684.41,2021-02-20,17,1,3856.35,Scotland
+360,51,Female,Home,2319.33,2019-01-27,70,1,12389.46,London
+361,61,Male,Home,2903.39,2020-08-27,43,0,0.0,Midlands
+362,50,Female,Motor,1034.28,2018-11-02,31,1,11667.13,London
+363,31,Male,Home,1147.89,2019-05-10,51,0,0.0,London
+364,44,Female,Motor,623.77,2019-10-08,44,0,0.0,North West
+365,27,Male,Life,1185.04,2019-01-09,37,0,0.0,Midlands
+366,28,Female,Motor,2974.83,2018-05-08,57,0,0.0,South East
+367,60,Male,Motor,575.15,2019-07-27,21,1,12540.4,Wales
+368,33,Male,Life,1305.05,2018-12-11,39,0,0.0,London
+369,29,Male,Health,1497.26,2019-06-12,17,0,0.0,Scotland
+370,46,Male,Motor,1544.69,2019-11-20,61,0,0.0,Midlands
+371,26,Female,Life,766.58,2020-05-29,29,0,0.0,South East
+372,34,Male,Home,1965.84,2021-04-23,69,0,0.0,South East
+373,28,Male,Motor,670.54,2020-03-27,37,0,0.0,Scotland
+374,75,Male,Health,2411.17,2022-01-10,67,0,0.0,South East
+375,61,Female,Home,785.5,2021-07-30,34,1,12255.0,Midlands
+376,55,Female,Life,2998.94,2019-10-16,18,0,0.0,London
+377,59,Male,Life,2859.07,2022-05-10,51,0,0.0,Wales
+378,36,Male,Motor,1158.61,2022-01-09,9,0,0.0,Midlands
+379,61,Male,Home,808.23,2023-07-10,45,1,1050.47,London
+380,63,Male,Motor,1590.57,2021-09-20,31,0,0.0,Midlands
+381,36,Female,Motor,698.82,2019-08-04,20,0,0.0,Scotland
+382,29,Female,Life,2087.78,2019-02-18,49,0,0.0,London
+383,35,Female,Life,2893.79,2021-07-23,28,0,0.0,South East
+384,64,Female,Motor,1890.17,2019-12-20,54,0,0.0,North West
+385,33,Male,Life,2861.73,2022-05-23,10,1,5114.15,Scotland
+386,64,Male,Home,581.1,2023-07-26,24,0,0.0,London
+387,47,Female,Motor,2690.36,2018-12-30,48,0,0.0,Midlands
+388,40,Male,Home,2424.95,2018-01-06,12,0,0.0,North West
+389,35,Female,Home,1322.52,2022-03-18,18,0,0.0,North West
+390,61,Male,Motor,499.02,2018-05-17,43,1,4286.35,London
+391,46,Male,Health,734.44,2018-11-04,17,0,0.0,Wales
+392,55,Male,Home,2064.81,2022-11-14,26,1,5300.87,Wales
+393,51,Female,Life,1102.98,2019-01-28,12,0,0.0,South East
+394,56,Male,Motor,310.3,2018-12-25,43,0,0.0,South East
+395,55,Male,Motor,858.77,2021-04-10,16,0,0.0,London
+396,75,Female,Home,2716.17,2020-12-21,17,0,0.0,Midlands
+397,48,Female,Home,1503.59,2020-12-14,62,0,0.0,London
+398,42,Male,Motor,2180.47,2019-02-01,16,0,0.0,Scotland
+399,51,Male,Home,2570.15,2023-11-11,59,0,0.0,North West
+400,55,Male,Home,513.18,2018-05-23,70,0,0.0,South East
+401,61,Male,Motor,2344.41,2019-12-10,27,0,0.0,Scotland
+402,33,Male,Home,2968.36,2022-11-19,31,0,0.0,South East
+403,63,Female,Motor,2263.18,2018-10-02,17,0,0.0,Midlands
+404,45,Female,Home,2776.34,2018-02-20,72,0,0.0,London
+405,34,Male,Home,1873.23,2019-02-15,19,0,0.0,London
+406,43,Female,Health,1013.17,2023-06-12,66,1,4493.51,London
+407,63,Female,Motor,2701.85,2021-09-19,36,1,7390.66,Midlands
+408,48,Male,Motor,2442.86,2021-06-27,41,0,0.0,Scotland
+409,68,Male,Health,915.49,2021-05-15,62,0,0.0,Midlands
+410,71,Female,Home,541.07,2022-12-15,33,0,0.0,Midlands
+411,56,Female,Life,1691.23,2019-10-14,14,0,0.0,South East
+412,33,Male,Motor,2662.99,2020-04-02,13,0,0.0,South East
+413,48,Male,Motor,2523.47,2023-08-31,56,0,0.0,London
+414,26,Male,Home,1903.92,2019-12-29,66,0,0.0,Midlands
+415,35,Female,Life,2159.9,2021-03-13,9,0,0.0,London
+416,61,Male,Health,2047.93,2020-04-26,40,0,0.0,South East
+417,74,Male,Home,657.25,2019-12-11,7,0,0.0,South East
+418,44,Female,Home,1316.48,2021-11-29,64,0,0.0,South East
+419,68,Female,Home,319.84,2022-03-13,42,0,0.0,London
+420,29,Female,Health,2029.61,2021-02-08,39,0,0.0,Wales
+421,66,Female,Motor,1696.69,2020-09-11,13,0,0.0,Scotland
+422,63,Female,Life,2138.04,2018-04-15,69,0,0.0,Midlands
+423,51,Female,Home,395.36,2020-02-17,49,0,0.0,London
+424,59,Female,Health,2114.04,2023-09-09,44,0,0.0,Scotland
+425,60,Male,Motor,1571.11,2020-11-25,29,0,0.0,Scotland
+426,66,Male,Motor,902.99,2021-06-11,59,0,0.0,Midlands
+427,41,Female,Home,618.01,2018-08-08,15,0,0.0,London
+428,32,Female,Home,1415.39,2019-09-10,23,0,0.0,Midlands
+429,61,Female,Motor,2628.46,2020-01-09,16,0,0.0,North West
+430,36,Female,Home,312.73,2021-01-25,32,0,0.0,London
+431,73,Male,Home,2361.64,2018-12-27,22,0,0.0,North West
+432,50,Female,Health,1334.95,2018-06-04,31,0,0.0,Wales
+433,45,Male,Motor,311.13,2020-10-16,34,0,0.0,Midlands
+434,33,Male,Home,1889.41,2019-11-16,14,0,0.0,Midlands
+435,43,Female,Life,1910.2,2021-10-15,61,0,0.0,Wales
+436,46,Female,Home,808.75,2022-07-11,8,0,0.0,North West
+437,33,Male,Life,1892.17,2019-11-24,21,0,0.0,North West
+438,27,Female,Health,990.63,2023-12-31,12,0,0.0,London
+439,31,Male,Motor,612.63,2022-12-25,54,1,4164.71,North West
+440,38,Male,Motor,2086.49,2023-11-02,40,0,0.0,North West
+441,51,Male,Home,1967.78,2021-03-03,20,0,0.0,South East
+442,63,Male,Life,2545.05,2020-04-06,51,0,0.0,Midlands
+443,27,Female,Health,2158.15,2023-05-23,48,0,0.0,London
+444,30,Male,Life,2106.36,2019-09-03,17,0,0.0,London
+445,71,Male,Health,2039.71,2023-02-14,43,0,0.0,London
+446,36,Male,Health,1272.58,2021-07-04,60,0,0.0,London
+447,73,Male,Motor,673.66,2019-11-30,48,0,0.0,South East
+448,64,Female,Health,550.97,2021-11-04,29,1,6303.63,South East
+449,49,Female,Life,2051.89,2019-11-15,20,1,11032.96,Wales
+450,35,Male,Home,1895.03,2022-11-30,29,0,0.0,North West
+451,64,Male,Health,2675.87,2019-06-20,67,0,0.0,London
+452,51,Female,Motor,1006.35,2021-07-11,7,0,0.0,North West
+453,74,Male,Health,2108.58,2021-10-17,72,0,0.0,North West
+454,31,Female,Life,971.16,2021-11-17,55,1,12483.35,Scotland
+455,64,Male,Motor,2822.8,2023-09-02,66,0,0.0,Scotland
+456,29,Female,Motor,1193.42,2021-02-13,12,0,0.0,South East
+457,49,Female,Life,512.84,2022-12-25,63,1,7727.61,Midlands
+458,56,Male,Motor,1413.31,2018-01-01,17,0,0.0,Wales
+459,65,Female,Health,1818.3,2023-02-12,49,0,0.0,London
+460,39,Female,Motor,2372.02,2023-04-22,52,0,0.0,London
+461,73,Male,Motor,1258.88,2021-04-10,72,0,0.0,London
+462,35,Female,Motor,2235.51,2022-08-04,19,0,0.0,London
+463,32,Female,Motor,2526.3,2020-02-20,49,1,6509.82,Wales
+464,68,Male,Life,1516.36,2023-08-28,23,0,0.0,London
+465,72,Male,Home,1468.59,2023-06-02,71,0,0.0,Scotland
+466,69,Male,Life,646.63,2022-05-06,47,0,0.0,Midlands
+467,63,Male,Motor,2901.7,2021-04-19,63,0,0.0,London
+468,63,Female,Life,1779.08,2021-07-09,33,1,9550.43,Midlands
+469,47,Male,Health,2055.23,2019-12-30,70,0,0.0,North West
+470,70,Male,Life,1818.16,2022-09-06,42,0,0.0,Midlands
+471,25,Male,Motor,692.38,2018-08-20,31,0,0.0,North West
+472,43,Female,Motor,467.49,2021-04-23,32,0,0.0,London
+473,53,Male,Home,2123.92,2020-07-07,55,0,0.0,North West
+474,69,Female,Life,426.85,2022-04-12,55,0,0.0,North West
+475,68,Female,Health,445.27,2020-10-26,31,0,0.0,North West
+476,53,Male,Health,2202.5,2022-02-15,31,0,0.0,Wales
+477,43,Female,Motor,2143.18,2020-02-05,28,0,0.0,London
+478,27,Female,Motor,1013.45,2019-10-22,38,1,7261.8,Wales
+479,27,Male,Health,1911.58,2021-05-18,68,0,0.0,South East
+480,29,Female,Home,2883.87,2023-11-03,14,0,0.0,London
+481,59,Female,Motor,897.23,2020-05-23,48,0,0.0,Midlands
+482,73,Female,Health,2523.96,2018-02-06,20,0,0.0,South East
+483,66,Male,Health,2142.89,2021-08-07,54,0,0.0,Wales
+484,49,Female,Home,1063.64,2023-10-19,53,0,0.0,South East
+485,56,Male,Motor,2059.13,2021-08-05,71,1,1891.37,Wales
+486,74,Male,Home,869.11,2020-05-23,60,0,0.0,London
+487,69,Female,Home,2837.33,2019-09-22,9,0,0.0,Midlands
+488,30,Male,Motor,2444.38,2018-10-16,35,0,0.0,Midlands
+489,53,Female,Home,345.61,2019-04-30,6,0,0.0,South East
+490,73,Male,Life,495.99,2023-08-22,19,0,0.0,North West
+491,63,Male,Motor,2802.07,2022-04-12,56,0,0.0,London
+492,35,Male,Motor,1355.68,2021-04-23,24,0,0.0,Scotland
+493,75,Female,Health,330.11,2019-08-03,21,1,8804.42,Midlands
+494,60,Male,Motor,2320.4,2021-11-09,33,0,0.0,North West
+495,57,Male,Motor,896.13,2020-11-01,30,1,10229.18,South East
+496,28,Female,Home,497.49,2018-10-03,38,1,11021.04,South East
+497,46,Female,Motor,2069.78,2019-02-14,42,0,0.0,Scotland
+498,45,Female,Home,1964.12,2021-06-06,25,0,0.0,Midlands
+499,45,Female,Motor,1145.68,2020-06-26,61,0,0.0,Midlands
+500,68,Female,Health,1549.69,2022-01-09,45,0,0.0,London
+501,66,Male,Life,2618.53,2019-07-28,31,0,0.0,Scotland
+502,29,Male,Health,2593.89,2018-05-08,57,0,0.0,London
+503,27,Female,Home,2996.57,2023-04-18,25,0,0.0,London
+504,74,Female,Motor,1653.03,2019-01-06,56,0,0.0,London
+505,40,Male,Life,679.0,2019-10-15,28,0,0.0,South East
+506,34,Female,Health,409.13,2023-06-21,35,1,5856.81,London
+507,38,Female,Home,2778.34,2018-07-10,11,0,0.0,Midlands
+508,70,Female,Life,1010.95,2019-12-14,54,0,0.0,Midlands
+509,66,Male,Home,1316.09,2020-07-01,72,0,0.0,Scotland
+510,47,Female,Life,2695.36,2018-01-28,70,0,0.0,South East
+511,39,Male,Home,1058.19,2019-09-08,29,1,9229.29,Scotland
+512,67,Male,Home,1191.61,2019-04-10,67,0,0.0,South East
+513,62,Male,Home,1409.43,2020-09-25,11,1,9089.04,London
+514,57,Male,Health,696.54,2019-11-13,39,0,0.0,South East
+515,50,Male,Health,2265.53,2021-03-07,16,1,9294.63,South East
+516,55,Male,Motor,1409.07,2019-08-08,29,0,0.0,South East
+517,35,Female,Health,1910.64,2018-10-09,35,0,0.0,London
+518,26,Male,Home,2755.22,2022-09-16,25,0,0.0,London
+519,64,Male,Health,1734.86,2019-04-27,17,0,0.0,London
+520,63,Male,Health,2392.15,2022-11-03,72,0,0.0,Scotland
+521,69,Female,Motor,2466.21,2022-04-11,50,0,0.0,North West
+522,73,Male,Home,987.2,2020-08-10,16,0,0.0,Scotland
+523,51,Female,Motor,2214.7,2018-01-30,72,1,604.31,North West
+524,69,Female,Home,587.77,2022-10-12,38,0,0.0,South East
+525,61,Female,Home,2977.86,2022-06-16,32,0,0.0,North West
+526,55,Male,Home,1798.26,2020-11-05,45,0,0.0,North West
+527,50,Male,Health,2080.06,2020-07-30,63,0,0.0,Wales
+528,31,Male,Home,2422.42,2018-08-02,26,0,0.0,North West
+529,30,Male,Home,1920.66,2018-12-28,14,0,0.0,Midlands
+530,63,Male,Life,2812.85,2022-06-30,72,0,0.0,Wales
+531,28,Male,Home,1485.22,2020-04-06,72,0,0.0,London
+532,63,Male,Home,2119.87,2022-01-13,36,0,0.0,Wales
+533,30,Female,Life,1253.44,2022-06-07,57,0,0.0,South East
+534,72,Male,Health,1783.9,2021-11-26,50,0,0.0,Midlands
+535,63,Male,Home,1390.68,2018-01-20,39,1,7840.45,South East
+536,57,Female,Motor,615.92,2023-10-04,38,0,0.0,Scotland
+537,61,Female,Life,2908.35,2023-06-04,37,0,0.0,Wales
+538,54,Female,Health,2627.46,2023-05-29,20,0,0.0,Midlands
+539,75,Male,Life,920.81,2021-07-17,58,0,0.0,South East
+540,25,Female,Motor,551.13,2021-11-01,15,0,0.0,London
+541,45,Female,Motor,1849.02,2020-01-19,30,0,0.0,London
+542,72,Male,Health,858.3,2020-04-10,37,0,0.0,Midlands
+543,74,Male,Motor,511.92,2023-07-11,6,0,0.0,South East
+544,27,Female,Home,1151.63,2021-01-30,68,1,11581.8,South East
+545,50,Male,Life,646.26,2023-11-24,60,0,0.0,South East
+546,57,Female,Home,2153.11,2019-12-17,64,0,0.0,North West
+547,54,Female,Life,331.91,2020-05-13,54,0,0.0,Midlands
+548,64,Female,Motor,1009.69,2021-01-08,66,0,0.0,Midlands
+549,36,Female,Home,1431.55,2022-03-05,52,0,0.0,Midlands
+550,36,Male,Health,2152.23,2019-02-14,40,0,0.0,South East
+551,49,Male,Motor,2889.7,2019-09-05,66,0,0.0,London
+552,56,Male,Health,2593.35,2023-10-19,46,0,0.0,Midlands
+553,60,Male,Home,2164.47,2018-09-03,33,0,0.0,South East
+554,65,Male,Home,1203.57,2022-01-18,52,0,0.0,Wales
+555,41,Female,Motor,627.34,2020-03-25,28,0,0.0,Midlands
+556,45,Female,Life,1506.71,2018-11-18,54,0,0.0,South East
+557,34,Male,Home,2807.13,2022-09-24,57,0,0.0,London
+558,35,Female,Motor,1155.57,2021-04-08,40,0,0.0,Midlands
+559,53,Female,Life,1706.53,2023-01-19,58,1,12886.07,London
+560,40,Female,Health,2191.88,2018-11-24,32,1,1993.64,London
+561,55,Male,Motor,1371.93,2018-12-07,19,0,0.0,London
+562,66,Female,Motor,967.97,2021-03-09,62,0,0.0,London
+563,35,Male,Motor,1263.47,2021-08-25,66,0,0.0,Scotland
+564,42,Female,Motor,2860.91,2019-12-27,64,0,0.0,North West
+565,61,Female,Home,2026.73,2021-06-22,50,0,0.0,London
+566,30,Female,Motor,1412.95,2019-09-30,44,1,8088.09,North West
+567,33,Female,Motor,1744.77,2023-07-08,67,0,0.0,North West
+568,43,Male,Life,1780.17,2020-02-12,58,0,0.0,South East
+569,40,Male,Life,2044.18,2022-03-30,34,0,0.0,Midlands
+570,40,Female,Motor,2305.9,2021-01-06,58,1,1492.73,London
+571,32,Female,Home,1034.76,2023-07-09,30,0,0.0,London
+572,59,Male,Motor,576.14,2021-01-07,22,0,0.0,North West
+573,39,Male,Motor,1632.66,2021-11-01,59,0,0.0,North West
+574,48,Female,Life,385.69,2018-11-25,24,1,11746.97,London
+575,55,Male,Motor,2572.16,2022-04-12,7,1,11638.11,London
+576,74,Female,Motor,2985.25,2020-03-26,64,0,0.0,London
+577,67,Male,Home,2139.89,2021-07-02,47,1,11059.44,North West
+578,60,Male,Motor,2024.0,2020-03-24,52,0,0.0,Scotland
+579,38,Male,Motor,1472.24,2018-03-03,27,0,0.0,South East
+580,50,Male,Motor,413.38,2023-05-01,25,0,0.0,London
+581,35,Female,Motor,1970.34,2018-09-03,13,0,0.0,London
+582,59,Male,Motor,928.22,2021-11-23,62,0,0.0,London
+583,49,Female,Life,976.88,2018-06-11,68,0,0.0,South East
+584,59,Female,Motor,803.89,2021-11-25,47,0,0.0,Midlands
+585,63,Male,Motor,718.57,2021-04-26,39,0,0.0,South East
+586,74,Female,Life,2683.92,2022-01-31,36,0,0.0,London
+587,59,Female,Motor,2144.71,2019-09-24,42,0,0.0,North West
+588,32,Male,Home,480.04,2019-06-16,28,0,0.0,London
+589,56,Male,Motor,1841.73,2022-05-11,68,0,0.0,North West
+590,41,Male,Home,1936.07,2018-10-18,7,0,0.0,London
+591,56,Male,Home,2025.08,2022-01-18,59,0,0.0,North West
+592,28,Female,Home,2282.61,2021-05-29,15,0,0.0,Wales
+593,31,Male,Life,1735.48,2020-02-16,30,0,0.0,London
+594,65,Male,Home,1806.98,2019-03-09,51,0,0.0,North West
+595,52,Male,Motor,787.07,2022-07-03,70,0,0.0,London
+596,63,Female,Health,2736.71,2021-08-22,53,0,0.0,North West
+597,71,Female,Home,1820.49,2020-05-26,54,0,0.0,Wales
+598,41,Female,Health,1508.25,2022-06-15,6,0,0.0,Wales
+599,63,Male,Home,2982.21,2021-05-21,6,0,0.0,London
+600,45,Male,Life,2847.04,2021-02-04,71,0,0.0,Wales
+601,34,Male,Motor,1260.27,2019-07-21,39,0,0.0,South East
+602,39,Female,Life,548.14,2022-06-26,33,0,0.0,North West
+603,75,Female,Motor,2529.4,2019-01-26,44,1,12220.95,Midlands
+604,74,Male,Health,1202.85,2022-11-14,59,0,0.0,London
+605,74,Male,Life,2593.59,2018-02-16,54,1,8103.56,Midlands
+606,61,Male,Motor,2183.98,2019-09-20,12,0,0.0,Wales
+607,53,Male,Motor,1082.41,2022-06-04,24,1,1696.9,South East
+608,28,Female,Motor,1376.02,2022-11-15,22,0,0.0,South East
+609,37,Female,Home,1842.59,2023-11-18,37,0,0.0,Midlands
+610,52,Female,Life,1855.25,2019-04-06,58,0,0.0,Midlands
+611,45,Female,Home,365.36,2021-06-02,27,0,0.0,South East
+612,53,Male,Home,2795.38,2020-08-14,31,0,0.0,London
+613,71,Male,Motor,447.25,2019-08-28,42,1,10560.03,London
+614,53,Female,Motor,864.33,2020-05-17,32,0,0.0,North West
+615,60,Female,Home,2979.22,2018-03-17,54,0,0.0,North West
+616,27,Female,Motor,1066.84,2021-01-16,12,0,0.0,Wales
+617,29,Female,Life,2090.05,2022-01-15,19,1,13077.45,North West
+618,39,Female,Home,2216.16,2021-07-16,68,0,0.0,South East
+619,36,Male,Home,1536.56,2018-03-30,11,0,0.0,South East
+620,46,Female,Home,723.91,2021-11-21,51,0,0.0,Midlands
+621,57,Female,Life,1989.64,2022-05-05,9,0,0.0,Wales
+622,39,Male,Motor,1360.69,2019-07-17,17,0,0.0,South East
+623,68,Male,Home,1846.83,2022-10-13,45,0,0.0,Midlands
+624,59,Male,Motor,674.16,2020-04-08,23,0,0.0,North West
+625,58,Male,Home,2754.31,2019-08-18,26,0,0.0,South East
+626,71,Male,Motor,2566.71,2019-08-20,9,0,0.0,Scotland
+627,51,Female,Motor,2313.15,2021-01-26,25,0,0.0,London
+628,36,Male,Life,1952.35,2020-12-29,35,0,0.0,London
+629,26,Female,Motor,2405.53,2019-07-04,70,0,0.0,South East
+630,66,Female,Motor,1346.14,2023-04-25,23,1,3780.96,Midlands
+631,25,Female,Health,900.9,2020-04-10,32,1,13943.0,Wales
+632,64,Female,Life,2640.29,2020-10-07,60,0,0.0,London
+633,72,Female,Life,1364.21,2023-11-22,10,0,0.0,South East
+634,27,Male,Home,1368.15,2018-06-10,55,0,0.0,North West
+635,28,Male,Motor,1374.71,2021-06-01,42,0,0.0,Midlands
+636,64,Male,Life,2739.92,2023-03-14,63,1,7759.54,London
+637,62,Male,Home,1173.34,2018-04-13,28,0,0.0,Scotland
+638,37,Female,Motor,1175.0,2019-11-03,21,1,10740.29,North West
+639,30,Female,Life,2933.02,2019-10-17,54,0,0.0,London
+640,35,Female,Home,2080.73,2019-09-07,26,0,0.0,London
+641,70,Male,Home,1135.7,2023-01-02,42,0,0.0,London
+642,33,Male,Motor,2366.57,2018-02-20,64,0,0.0,South East
+643,25,Female,Motor,1889.93,2023-05-03,64,0,0.0,London
+644,63,Male,Motor,1777.82,2020-04-30,12,1,1298.43,Midlands
+645,34,Male,Life,2562.64,2021-05-07,48,0,0.0,London
+646,51,Male,Motor,1067.83,2019-12-28,64,0,0.0,Midlands
+647,27,Male,Life,1171.62,2022-04-02,14,0,0.0,Scotland
+648,29,Female,Home,629.46,2021-01-29,48,0,0.0,South East
+649,69,Male,Home,595.12,2023-12-07,17,0,0.0,North West
+650,75,Female,Home,2589.05,2020-11-29,51,0,0.0,South East
+651,56,Female,Home,785.75,2020-08-11,43,0,0.0,London
+652,26,Female,Home,618.4,2020-04-29,59,0,0.0,Midlands
+653,60,Male,Motor,843.21,2021-02-27,38,0,0.0,Midlands
+654,57,Female,Life,607.36,2021-09-27,49,0,0.0,South East
+655,26,Male,Motor,2551.33,2023-05-17,66,0,0.0,North West
+656,55,Male,Home,2708.56,2021-10-04,65,0,0.0,Midlands
+657,72,Male,Life,1108.23,2021-07-16,8,1,10439.65,North West
+658,75,Female,Motor,703.12,2018-05-08,49,0,0.0,South East
+659,35,Female,Motor,615.48,2021-06-16,46,0,0.0,Midlands
+660,30,Female,Health,1303.28,2021-05-24,33,0,0.0,London
+661,48,Male,Life,2766.06,2022-12-23,70,1,7498.62,South East
+662,37,Female,Health,2277.59,2023-11-15,45,0,0.0,London
+663,31,Male,Motor,398.69,2022-05-07,72,1,5009.23,London
+664,63,Male,Motor,2700.8,2019-02-27,72,0,0.0,North West
+665,26,Female,Home,866.58,2020-04-01,30,0,0.0,South East
+666,74,Female,Life,1036.17,2019-10-08,41,1,14395.32,South East
+667,31,Male,Home,1783.29,2021-01-15,24,0,0.0,Scotland
+668,61,Male,Motor,1140.72,2021-10-19,62,1,920.39,Scotland
+669,28,Male,Home,532.52,2022-05-25,28,0,0.0,Scotland
+670,65,Female,Home,1143.59,2020-03-22,16,0,0.0,North West
+671,54,Male,Motor,2466.35,2023-04-03,18,0,0.0,North West
+672,70,Female,Home,2858.11,2019-08-12,39,0,0.0,Midlands
+673,69,Female,Life,2682.49,2023-01-31,68,1,7392.35,Midlands
+674,54,Male,Motor,1241.26,2019-06-06,71,1,12354.52,North West
+675,45,Male,Life,1738.41,2022-06-30,58,0,0.0,London
+676,35,Female,Home,1219.93,2022-11-01,61,0,0.0,Midlands
+677,69,Male,Motor,2107.93,2023-06-17,20,0,0.0,South East
+678,60,Male,Life,775.67,2022-07-21,14,0,0.0,North West
+679,63,Female,Motor,2041.47,2018-09-09,17,1,2514.29,South East
+680,73,Male,Life,2084.38,2023-01-30,43,0,0.0,South East
+681,37,Male,Life,1154.81,2021-06-01,61,0,0.0,Scotland
+682,30,Male,Home,1678.14,2019-06-07,43,1,13565.6,Wales
+683,25,Female,Motor,1061.96,2018-05-08,36,0,0.0,South East
+684,65,Female,Life,1396.29,2022-11-18,33,0,0.0,South East
+685,37,Female,Life,1272.78,2022-09-05,25,0,0.0,Scotland
+686,33,Male,Motor,2050.65,2019-08-13,68,0,0.0,Wales
+687,33,Male,Motor,2476.04,2023-02-11,60,0,0.0,South East
+688,52,Female,Home,909.5,2022-10-06,6,0,0.0,Scotland
+689,40,Female,Home,1774.65,2022-02-12,10,0,0.0,South East
+690,70,Female,Motor,1600.14,2018-11-24,24,0,0.0,South East
+691,73,Female,Home,511.23,2018-12-29,37,0,0.0,North West
+692,67,Male,Life,1755.83,2021-07-03,12,0,0.0,South East
+693,25,Female,Home,2746.35,2021-09-19,59,0,0.0,Wales
+694,43,Female,Motor,2176.64,2021-05-30,39,1,7360.83,London
+695,28,Female,Life,1985.66,2021-03-20,68,1,7831.14,Scotland
+696,42,Female,Motor,1058.62,2020-11-18,7,0,0.0,South East
+697,62,Male,Life,1298.37,2019-12-20,39,0,0.0,London
+698,36,Male,Motor,527.88,2019-08-18,25,0,0.0,North West
+699,51,Female,Motor,1488.5,2019-11-17,32,0,0.0,Scotland
+700,28,Female,Life,613.18,2019-11-18,65,0,0.0,Midlands
+701,72,Male,Home,2205.14,2023-04-28,39,1,13119.03,London
+702,53,Female,Life,2896.76,2018-06-18,18,0,0.0,North West
+703,52,Female,Motor,1021.14,2019-02-07,38,0,0.0,Midlands
+704,74,Male,Life,1889.56,2020-03-09,72,0,0.0,North West
+705,36,Female,Home,2116.57,2018-10-06,7,0,0.0,South East
+706,68,Female,Home,2258.18,2020-10-28,30,1,9481.26,London
+707,63,Male,Health,2022.82,2019-05-07,17,0,0.0,London
+708,67,Male,Health,2178.26,2020-11-03,43,0,0.0,Wales
+709,65,Female,Health,1046.24,2022-10-15,47,0,0.0,North West
+710,42,Male,Home,1198.17,2018-09-04,39,0,0.0,Midlands
+711,53,Male,Home,2807.18,2022-05-28,28,0,0.0,London
+712,59,Female,Motor,2037.01,2022-12-14,39,1,1557.33,South East
+713,41,Female,Motor,1643.79,2018-01-04,10,0,0.0,Midlands
+714,69,Female,Health,1851.53,2023-10-13,68,0,0.0,Midlands
+715,71,Male,Home,308.93,2023-05-29,21,0,0.0,Wales
+716,47,Female,Life,1381.66,2019-01-07,52,0,0.0,Wales
+717,30,Female,Life,1082.89,2020-04-11,28,0,0.0,Wales
+718,67,Male,Motor,1353.28,2019-03-14,51,0,0.0,Scotland
+719,53,Male,Motor,821.35,2020-09-03,68,0,0.0,North West
+720,66,Female,Home,2905.38,2023-01-15,8,1,1312.79,North West
+721,27,Female,Motor,2479.18,2023-11-13,64,0,0.0,Scotland
+722,59,Male,Life,929.06,2018-10-23,10,0,0.0,South East
+723,26,Female,Health,1969.6,2020-09-21,22,1,9673.59,Scotland
+724,75,Male,Home,760.86,2018-09-19,19,1,9127.17,South East
+725,29,Male,Home,2491.11,2022-07-05,47,1,10419.28,South East
+726,45,Male,Life,1901.33,2021-10-06,14,1,2547.93,Midlands
+727,69,Female,Home,1484.39,2018-06-16,23,1,12786.82,South East
+728,74,Male,Motor,1614.81,2018-01-27,6,1,1792.55,North West
+729,43,Female,Life,2439.05,2023-05-04,22,1,9777.47,South East
+730,51,Male,Health,1948.45,2018-06-04,29,0,0.0,South East
+731,30,Female,Motor,312.34,2020-08-23,30,1,8187.89,London
+732,48,Male,Home,1991.45,2020-05-02,41,1,2133.85,London
+733,55,Female,Motor,2109.39,2018-06-26,12,0,0.0,Midlands
+734,52,Female,Motor,2473.91,2023-01-31,11,1,1260.62,South East
+735,35,Male,Home,613.38,2020-08-21,62,0,0.0,Midlands
+736,37,Female,Motor,597.36,2020-07-21,18,0,0.0,Midlands
+737,37,Female,Health,498.53,2023-06-08,12,0,0.0,London
+738,64,Female,Motor,1308.41,2023-02-18,30,0,0.0,Wales
+739,37,Female,Motor,2168.97,2018-09-02,41,1,12848.94,South East
+740,35,Female,Motor,1096.94,2019-10-05,27,0,0.0,South East
+741,39,Male,Home,1708.78,2020-06-05,66,0,0.0,Midlands
+742,71,Female,Life,965.97,2021-09-02,61,0,0.0,Scotland
+743,62,Male,Health,2725.28,2022-09-08,11,1,7324.46,North West
+744,27,Female,Home,1594.03,2019-02-06,63,0,0.0,London
+745,73,Male,Life,1397.87,2020-06-11,22,0,0.0,London
+746,30,Male,Home,1123.06,2023-02-25,9,0,0.0,South East
+747,33,Female,Motor,2653.19,2023-03-17,6,0,0.0,London
+748,69,Female,Home,1100.79,2021-01-10,32,0,0.0,London
+749,46,Male,Home,2757.01,2022-01-30,12,1,5801.07,South East
+750,48,Female,Motor,1808.73,2018-10-02,32,1,5356.48,South East
+751,66,Female,Life,2331.15,2020-05-09,34,0,0.0,Scotland
+752,57,Female,Motor,471.1,2021-11-15,63,0,0.0,South East
+753,32,Female,Life,2131.43,2023-12-23,43,0,0.0,Midlands
+754,68,Male,Motor,2686.74,2018-12-24,16,0,0.0,London
+755,29,Male,Motor,602.47,2019-08-30,69,1,3461.71,Wales
+756,26,Female,Home,2142.49,2019-06-25,66,0,0.0,South East
+757,66,Male,Motor,469.96,2020-08-09,72,0,0.0,Midlands
+758,46,Female,Home,2097.81,2023-12-12,62,0,0.0,South East
+759,75,Female,Motor,1002.02,2023-06-07,53,0,0.0,North West
+760,28,Male,Home,1531.0,2019-11-13,26,0,0.0,Midlands
+761,36,Male,Motor,615.68,2021-07-20,22,0,0.0,Midlands
+762,38,Male,Life,2940.66,2019-08-29,53,0,0.0,Wales
+763,59,Female,Motor,367.3,2023-08-08,24,0,0.0,Wales
+764,34,Male,Health,1774.59,2023-09-10,48,0,0.0,Midlands
+765,43,Male,Life,2267.07,2022-12-16,49,0,0.0,North West
+766,27,Male,Life,615.57,2018-04-12,57,0,0.0,London
+767,47,Male,Motor,1942.01,2020-03-10,34,0,0.0,North West
+768,37,Male,Motor,2593.52,2018-12-24,71,0,0.0,South East
+769,63,Male,Health,1274.88,2019-08-29,60,0,0.0,Midlands
+770,43,Female,Home,2939.31,2018-12-25,33,0,0.0,South East
+771,51,Female,Motor,2475.32,2022-10-03,59,1,9014.11,London
+772,38,Female,Home,2642.32,2021-10-05,14,0,0.0,South East
+773,49,Male,Motor,2024.78,2021-01-24,59,1,7200.74,South East
+774,33,Male,Motor,1330.78,2023-07-03,11,0,0.0,Midlands
+775,62,Female,Home,2297.61,2020-07-08,9,0,0.0,London
+776,44,Female,Motor,2097.97,2021-03-24,59,1,13648.5,North West
+777,26,Male,Life,1631.24,2018-10-01,52,0,0.0,South East
+778,41,Female,Health,2509.36,2022-03-09,71,0,0.0,London
+779,41,Male,Home,694.57,2023-03-04,23,0,0.0,London
+780,48,Female,Home,2878.92,2018-07-19,43,0,0.0,North West
+781,29,Male,Life,794.77,2019-01-23,27,0,0.0,Scotland
+782,68,Female,Motor,2184.51,2022-01-24,18,0,0.0,Midlands
+783,34,Male,Motor,1059.83,2023-06-10,58,0,0.0,Scotland
+784,31,Male,Motor,897.01,2020-02-11,20,0,0.0,Scotland
+785,32,Male,Health,1594.7,2021-06-30,52,1,6908.1,Wales
+786,58,Female,Motor,1122.65,2019-05-01,34,1,10566.54,North West
+787,44,Male,Motor,2949.0,2022-10-07,20,1,11733.04,North West
+788,27,Male,Motor,2441.25,2023-10-05,13,0,0.0,Scotland
+789,27,Male,Motor,327.74,2019-01-31,21,0,0.0,London
+790,37,Male,Life,379.0,2019-08-20,41,0,0.0,Midlands
+791,35,Male,Home,484.51,2018-02-27,33,0,0.0,Wales
+792,35,Male,Health,566.45,2020-05-26,70,0,0.0,South East
+793,69,Male,Home,2885.92,2020-01-11,51,0,0.0,Midlands
+794,57,Male,Home,2355.81,2021-07-11,21,0,0.0,South East
+795,56,Female,Life,1804.26,2018-06-16,16,0,0.0,London
+796,43,Female,Home,1142.42,2022-12-24,34,0,0.0,Midlands
+797,52,Male,Health,2715.84,2023-05-03,53,1,14981.49,South East
+798,31,Female,Home,2078.08,2018-12-15,21,1,6309.05,South East
+799,31,Male,Motor,2933.06,2021-10-19,31,0,0.0,Wales
+800,32,Male,Life,2258.04,2021-02-14,40,0,0.0,Scotland
+801,50,Female,Home,1928.55,2022-07-15,68,0,0.0,London
+802,54,Male,Motor,1621.22,2020-08-03,23,1,11198.08,Scotland
+803,56,Male,Health,1333.11,2021-09-01,25,0,0.0,South East
+804,73,Male,Life,1703.86,2023-07-10,65,1,10100.35,South East
+805,41,Female,Life,1759.43,2018-03-14,10,0,0.0,Scotland
+806,32,Female,Home,2602.76,2022-12-18,64,1,3064.6,North West
+807,74,Female,Health,743.19,2022-10-31,23,0,0.0,Midlands
+808,73,Male,Home,1624.5,2023-04-09,66,0,0.0,London
+809,28,Female,Motor,1895.82,2022-03-28,51,0,0.0,Midlands
+810,28,Male,Home,646.13,2022-02-09,50,0,0.0,South East
+811,73,Female,Home,1456.0,2022-01-03,58,0,0.0,North West
+812,40,Male,Home,1899.84,2018-09-26,45,1,2961.8,South East
+813,27,Female,Life,1440.68,2023-10-10,59,0,0.0,North West
+814,62,Male,Health,1319.89,2022-05-18,47,0,0.0,Scotland
+815,31,Male,Motor,1657.48,2021-10-22,27,0,0.0,Midlands
+816,52,Male,Home,2587.8,2018-11-05,33,0,0.0,London
+817,61,Female,Life,1986.35,2019-01-12,18,0,0.0,Midlands
+818,61,Female,Home,1237.75,2018-11-11,44,0,0.0,Midlands
+819,67,Female,Motor,1386.21,2023-10-12,64,0,0.0,South East
+820,26,Male,Home,874.97,2023-03-30,40,0,0.0,South East
+821,64,Female,Health,2261.86,2018-09-03,72,1,7206.06,London
+822,72,Female,Life,1407.7,2018-09-21,32,0,0.0,Midlands
+823,43,Male,Motor,1923.33,2022-07-21,36,1,3282.78,London
+824,44,Female,Home,2976.49,2022-09-25,10,1,4454.32,London
+825,75,Female,Life,775.16,2018-06-22,68,0,0.0,London
+826,30,Female,Home,2641.36,2022-07-26,52,0,0.0,Scotland
+827,50,Male,Motor,1841.63,2023-08-12,21,0,0.0,Scotland
+828,74,Female,Home,543.67,2019-05-16,46,0,0.0,South East
+829,49,Male,Health,888.62,2019-03-14,28,1,4480.94,Midlands
+830,62,Male,Home,1311.7,2019-04-08,46,0,0.0,South East
+831,40,Female,Health,2829.83,2022-01-26,66,0,0.0,Scotland
+832,26,Male,Life,2088.0,2018-08-12,36,0,0.0,Midlands
+833,65,Female,Health,2150.17,2023-12-31,36,0,0.0,Midlands
+834,50,Female,Motor,2828.07,2020-08-22,44,1,13408.58,Scotland
+835,65,Female,Health,2370.2,2022-07-23,10,0,0.0,London
+836,74,Female,Home,1415.0,2021-09-24,60,0,0.0,Scotland
+837,35,Female,Home,1250.01,2021-08-31,64,0,0.0,North West
+838,66,Male,Home,2435.75,2019-07-12,6,0,0.0,South East
+839,45,Male,Motor,973.93,2019-06-17,58,0,0.0,Midlands
+840,55,Male,Motor,2156.16,2021-09-03,42,1,6510.2,London
+841,49,Male,Motor,362.02,2020-07-25,17,0,0.0,London
+842,69,Male,Motor,1968.61,2020-12-01,25,1,5834.84,Wales
+843,32,Male,Life,1474.93,2023-02-02,69,1,10846.67,London
+844,75,Female,Motor,1634.25,2019-06-18,61,0,0.0,South East
+845,43,Male,Home,1403.02,2019-08-21,9,0,0.0,Midlands
+846,64,Female,Health,1298.02,2023-02-20,16,1,2431.47,Midlands
+847,69,Female,Life,2226.01,2022-09-30,38,1,8576.5,London
+848,40,Female,Health,2991.2,2018-07-06,6,0,0.0,South East
+849,44,Female,Life,657.04,2018-06-18,28,0,0.0,South East
+850,46,Female,Motor,1156.76,2023-12-13,61,1,2194.21,London
+851,33,Female,Health,2553.97,2022-01-16,61,0,0.0,Scotland
+852,64,Female,Home,1476.59,2019-11-07,46,0,0.0,South East
+853,34,Female,Motor,701.28,2020-07-30,29,1,4273.25,North West
+854,52,Male,Health,2803.46,2018-06-17,62,0,0.0,North West
+855,56,Female,Home,2583.76,2019-08-30,21,0,0.0,London
+856,43,Male,Life,2324.83,2021-01-22,33,0,0.0,Wales
+857,58,Male,Home,507.46,2023-08-03,18,0,0.0,London
+858,68,Male,Home,1893.91,2019-03-11,47,1,1675.42,Scotland
+859,67,Female,Home,2879.04,2018-01-24,48,0,0.0,North West
+860,53,Female,Health,2999.52,2019-06-14,33,0,0.0,Scotland
+861,43,Female,Life,2308.26,2022-04-12,17,0,0.0,London
+862,74,Female,Motor,2601.33,2019-10-30,55,0,0.0,Midlands
+863,73,Male,Motor,1625.28,2022-11-06,45,0,0.0,South East
+864,47,Male,Life,1684.16,2023-06-29,63,0,0.0,South East
+865,61,Female,Motor,1440.85,2022-02-17,29,0,0.0,Midlands
+866,27,Female,Health,2126.39,2019-09-28,69,0,0.0,North West
+867,30,Female,Home,513.79,2023-05-11,44,1,2352.95,Scotland
+868,40,Female,Motor,428.87,2018-11-10,11,0,0.0,South East
+869,51,Male,Home,2244.84,2020-11-03,51,0,0.0,London
+870,57,Male,Motor,2086.26,2020-01-06,29,0,0.0,London
+871,51,Female,Motor,2255.06,2023-01-17,39,0,0.0,Scotland
+872,36,Male,Motor,2316.98,2020-11-28,19,0,0.0,London
+873,50,Male,Motor,2070.66,2023-02-28,57,0,0.0,Wales
+874,63,Female,Motor,2495.46,2022-01-17,56,0,0.0,London
+875,33,Male,Motor,2503.11,2020-02-10,9,1,9905.04,North West
+876,52,Male,Motor,2378.25,2019-08-30,66,0,0.0,London
+877,34,Female,Health,1573.02,2023-01-16,37,1,8756.74,Scotland
+878,28,Female,Motor,2002.11,2022-11-04,59,0,0.0,North West
+879,63,Female,Motor,1379.14,2023-10-04,68,0,0.0,London
+880,26,Female,Home,1793.79,2021-01-02,59,0,0.0,London
+881,64,Female,Home,1477.82,2019-10-23,42,0,0.0,South East
+882,53,Male,Home,1886.68,2021-10-21,65,1,4754.21,North West
+883,51,Female,Life,2459.34,2019-10-26,32,0,0.0,North West
+884,67,Female,Motor,838.61,2023-07-09,18,0,0.0,Wales
+885,56,Female,Motor,1803.44,2018-03-16,51,0,0.0,Midlands
+886,35,Male,Life,2715.04,2018-05-11,14,0,0.0,London
+887,39,Male,Home,1613.19,2021-10-25,51,0,0.0,North West
+888,60,Female,Health,2604.2,2023-10-13,19,0,0.0,Wales
+889,53,Female,Health,2340.56,2019-03-10,19,0,0.0,London
+890,31,Male,Home,2651.35,2022-01-21,26,0,0.0,North West
+891,73,Female,Life,568.09,2022-01-29,48,0,0.0,London
+892,37,Female,Health,2376.89,2018-01-27,37,0,0.0,South East
+893,43,Male,Motor,1305.58,2022-08-27,52,0,0.0,London
+894,73,Female,Life,672.58,2022-10-23,58,0,0.0,Scotland
+895,58,Female,Health,1494.96,2018-02-10,72,0,0.0,London
+896,45,Female,Health,743.68,2018-09-09,56,0,0.0,North West
+897,66,Male,Health,456.09,2023-10-31,43,0,0.0,Scotland
+898,69,Female,Life,1146.98,2021-11-10,7,0,0.0,Scotland
+899,64,Male,Life,1504.71,2020-04-20,62,0,0.0,Scotland
+900,75,Female,Life,2678.63,2018-12-12,10,0,0.0,Midlands
+901,71,Male,Home,1760.13,2020-05-25,17,0,0.0,Midlands
+902,46,Male,Motor,2703.86,2020-11-25,36,0,0.0,Midlands
+903,52,Male,Life,2572.28,2020-11-29,70,0,0.0,London
+904,66,Male,Home,1845.58,2018-01-22,64,0,0.0,London
+905,72,Male,Home,1068.25,2019-07-28,54,0,0.0,London
+906,45,Male,Life,1275.42,2019-02-06,24,0,0.0,Scotland
+907,30,Male,Motor,2698.98,2023-05-05,33,0,0.0,Midlands
+908,58,Female,Home,1701.15,2022-06-06,39,0,0.0,North West
+909,53,Female,Life,1425.69,2019-10-30,24,0,0.0,South East
+910,54,Male,Health,1685.6,2023-12-08,21,0,0.0,South East
+911,27,Male,Health,1297.2,2019-05-02,58,1,5859.0,Midlands
+912,58,Male,Motor,1123.3,2022-03-14,44,0,0.0,London
+913,34,Male,Life,1438.74,2021-06-03,42,1,12377.31,South East
+914,32,Female,Motor,420.64,2023-05-25,45,0,0.0,Scotland
+915,75,Female,Home,2244.09,2019-06-28,23,0,0.0,South East
+916,53,Female,Motor,2265.23,2019-01-01,58,0,0.0,Scotland
+917,46,Male,Health,2703.12,2021-02-10,17,0,0.0,North West
+918,61,Female,Home,634.21,2018-12-15,30,0,0.0,South East
+919,73,Male,Health,1708.74,2023-05-04,70,0,0.0,London
+920,59,Male,Health,1042.4,2020-04-22,37,0,0.0,Scotland
+921,62,Female,Motor,1740.57,2021-08-05,57,0,0.0,South East
+922,26,Female,Home,1420.33,2023-12-03,46,0,0.0,London
+923,31,Male,Motor,793.21,2019-01-03,25,0,0.0,Midlands
+924,35,Male,Home,1178.28,2018-04-22,13,0,0.0,London
+925,34,Female,Health,996.42,2019-05-11,12,1,11405.94,South East
+926,56,Female,Health,1027.08,2021-07-27,65,0,0.0,London
+927,26,Female,Home,2767.08,2018-03-18,40,0,0.0,South East
+928,31,Male,Life,2059.19,2019-05-30,44,0,0.0,South East
+929,65,Male,Life,684.39,2019-11-20,37,0,0.0,Midlands
+930,60,Female,Motor,2494.14,2021-03-30,27,1,14035.85,South East
+931,63,Female,Life,1326.41,2021-12-10,33,0,0.0,South East
+932,27,Male,Life,1820.32,2021-05-16,17,0,0.0,London
+933,33,Female,Health,869.3,2023-08-30,46,0,0.0,Wales
+934,65,Female,Health,2210.94,2021-01-23,37,0,0.0,Midlands
+935,38,Female,Health,1186.83,2019-07-02,6,0,0.0,London
+936,25,Male,Home,2717.22,2023-06-26,56,0,0.0,North West
+937,66,Male,Home,2709.94,2022-12-29,21,0,0.0,Scotland
+938,63,Female,Home,2565.69,2018-02-04,21,0,0.0,Wales
+939,53,Male,Motor,353.41,2021-02-25,51,1,12336.07,South East
+940,70,Male,Motor,1633.28,2022-01-26,10,0,0.0,Scotland
+941,70,Male,Motor,2957.51,2022-06-11,20,0,0.0,South East
+942,56,Male,Home,2081.56,2019-12-20,14,0,0.0,North West
+943,33,Female,Health,2609.79,2023-11-13,41,1,10330.69,Wales
+944,69,Female,Life,2684.38,2018-01-09,60,0,0.0,Wales
+945,28,Female,Home,2986.79,2021-01-27,21,0,0.0,South East
+946,48,Male,Health,906.28,2021-02-12,59,0,0.0,Midlands
+947,50,Male,Motor,2676.27,2018-04-14,34,0,0.0,Midlands
+948,29,Male,Motor,1188.91,2018-09-15,18,1,6763.26,London
+949,65,Female,Life,967.31,2023-04-24,36,0,0.0,Scotland
+950,46,Male,Health,2394.52,2022-12-02,18,0,0.0,South East
+951,30,Male,Health,1318.97,2018-09-24,22,1,12134.61,London
+952,64,Female,Motor,2129.42,2018-08-02,43,0,0.0,Midlands
+953,64,Female,Motor,1918.85,2018-02-13,64,0,0.0,North West
+954,64,Male,Motor,2831.48,2018-04-17,64,0,0.0,South East
+955,31,Male,Motor,2225.91,2020-03-04,22,0,0.0,Midlands
+956,51,Female,Life,1500.49,2020-09-22,23,0,0.0,London
+957,44,Female,Home,2059.6,2022-01-05,45,0,0.0,South East
+958,34,Male,Home,1928.99,2021-04-07,53,0,0.0,South East
+959,67,Male,Motor,1669.19,2018-08-12,60,0,0.0,Wales
+960,65,Male,Life,1222.19,2023-05-03,65,0,0.0,Midlands
+961,62,Female,Home,1430.48,2019-10-27,19,0,0.0,North West
+962,27,Female,Motor,309.98,2020-07-02,35,0,0.0,London
+963,55,Female,Life,1314.96,2022-06-28,29,0,0.0,London
+964,25,Male,Home,1797.67,2019-08-07,43,0,0.0,North West
+965,73,Female,Motor,380.15,2020-03-21,42,1,13338.04,North West
+966,46,Male,Motor,358.03,2020-12-08,18,1,10323.06,Midlands
+967,75,Male,Motor,867.64,2023-02-12,36,0,0.0,Midlands
+968,35,Female,Health,476.52,2019-08-15,22,0,0.0,London
+969,49,Female,Motor,1459.76,2020-09-28,11,0,0.0,South East
+970,59,Female,Life,1184.74,2018-08-07,41,0,0.0,Scotland
+971,62,Female,Motor,519.8,2023-04-12,14,1,6127.68,Scotland
+972,73,Female,Home,1553.52,2021-08-11,53,0,0.0,South East
+973,56,Female,Motor,1382.55,2018-05-30,32,1,3443.51,Scotland
+974,50,Male,Motor,2699.51,2019-10-06,53,0,0.0,London
+975,73,Male,Motor,1700.82,2020-07-31,11,0,0.0,South East
+976,52,Female,Home,1404.17,2023-07-31,46,0,0.0,London
+977,53,Male,Motor,504.9,2018-12-04,43,0,0.0,South East
+978,66,Male,Life,2801.84,2019-02-08,21,1,1055.08,London
+979,37,Female,Motor,2312.07,2021-01-29,30,0,0.0,Wales
+980,73,Female,Motor,1108.58,2021-11-20,57,0,0.0,Scotland
+981,73,Male,Home,1684.15,2019-09-04,56,0,0.0,North West
+982,38,Female,Motor,1884.91,2023-04-04,65,0,0.0,London
+983,37,Female,Life,2184.44,2020-05-08,62,0,0.0,South East
+984,48,Male,Home,646.53,2018-02-09,69,0,0.0,Scotland
+985,46,Male,Home,2151.56,2022-07-11,44,0,0.0,London
+986,75,Male,Health,714.97,2021-09-14,56,0,0.0,London
+987,50,Male,Home,808.51,2019-03-21,48,0,0.0,South East
+988,44,Male,Motor,2122.19,2019-12-29,10,0,0.0,South East
+989,26,Male,Motor,2760.63,2022-04-30,42,1,4721.03,South East
+990,54,Male,Home,329.83,2021-08-31,58,0,0.0,Wales
+991,33,Female,Home,485.66,2020-04-25,22,0,0.0,Midlands
+992,70,Female,Motor,1852.75,2021-06-25,31,0,0.0,North West
+993,42,Male,Motor,685.27,2018-09-20,57,0,0.0,London
+994,46,Female,Home,1855.56,2019-01-09,42,0,0.0,Scotland
+995,47,Female,Home,2523.26,2019-12-19,59,0,0.0,Scotland
+996,71,Female,Home,2759.25,2020-01-22,18,0,0.0,Wales
+997,40,Male,Motor,1995.82,2021-04-10,14,0,0.0,North West
+998,38,Female,Home,2357.02,2019-05-12,53,1,2025.76,North West
+999,45,Female,Home,982.47,2023-09-04,11,0,0.0,London
+1000,69,Female,Home,2314.09,2020-03-07,56,1,4133.78,North West

@@ -1,288 +1,51 @@
 ---
-title: "Motor Insurance Portfolio Review"
-subtitle: "Advanced R for Actuarial Statistics — Lesson 2 Business Case"
+title: "Policyholder Portfolio Summary"
+subtitle: "Monthly Reporting — Actuarial Analytics Division"
 author: "Actuarial Analytics Team"
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%B %Y')`"
 output:
   html_document:
     toc: true
-    toc_depth: 2
     toc_float: true
-    theme: flatly
     number_sections: true
-    df_print: kable
+    theme: flatly
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  echo    = TRUE,
-  warning = FALSE,
-  message = FALSE
-)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
-
-------------------------------------------------------------------------
-
-# Overview
-
-This report presents a **Q4 2024 portfolio review** for the motor insurance book. We examine three policy classes — Comprehensive, Third Party Only, and Fire & Theft — across key actuarial metrics including:
-
--   Premium volume and exposure
--   Claim frequency and average claim cost
--   Loss ratio by class and region
--   Risk segmentation by vehicle age and policyholder age
-
-> **Data source:** `motor_portfolio_q4_2024.csv` — 100 individual policy records generated for training purposes. Place this file in your working directory before knitting.
-
-------------------------------------------------------------------------
-
-# Data Loading & Preparation
-
-## Load the Dataset
 
 ```{r load-data}
-# ── Load required packages ──────────────────────────────────────────────────
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(knitr)
-library(kableExtra)
 
-# ── Read the CSV ─────────────────────────────────────────────────────────────
-# Make sure motor_portfolio_q4_2024.csv is in your working directory
-motor <- read.csv("~/Documents/GitHub/2nd_ifoa/data/motor_portfolio_q4_2024.csv", stringsAsFactors = FALSE)
-
-# Quick check
-glimpse(motor)
+policyholders <- read_csv("policyholders.csv")
 ```
 
-## Data Dictionary
+# Executive Summary
 
-| Column | Type | Description |
-|------------------------|------------------------|------------------------|
-| `policy_id` | character | Unique policy identifier |
-| `policy_class` | character | Comprehensive / Third Party Only / Fire & Theft |
-| `region` | character | UK region |
-| `vehicle_age` | integer | Age of insured vehicle (years) |
-| `annual_premium_gbp` | numeric | Annual gross written premium (£) |
-| `claim_made` | integer | 1 = claim made, 0 = no claim |
-| `claim_cost_gbp` | numeric | Settled claim amount (£); 0 if no claim |
-| `exposure_months` | integer | Policy exposure in months (all = 12 here) |
-| `policyholder_age` | integer | Age of primary policyholder |
-| `no_claims_years` | integer | Years of continuous no-claims history |
+The portfolio contains **`r nrow(policyholders)`** policyholders
+across **`r n_distinct(policyholders$policy_type)`** product lines.
+The average annual premium is **£`r round(mean(policyholders$annual_premium), 0)`**.
+The overall claim rate is **`r paste0(round(mean(policyholders$has_claim) * 100, 1), "%")`**.
 
-------------------------------------------------------------------------
+---
 
-# Portfolio Summary
+# Claim Experience
 
-## Premium & Exposure by Class
+## Claim Frequency by Policy Type
 
-```{r summary-by-class}
-# ── Aggregate by policy class ─────────────────────────────────────────────
-class_summary <- motor %>%
-  group_by(policy_class) %>%
+```{r claim-summary, echo=FALSE}
+policyholders %>%
+  group_by(policy_type) %>%
   summarise(
-    n_policies      = n(),
-    total_premium   = sum(annual_premium_gbp),
-    avg_premium     = round(mean(annual_premium_gbp), 0),
-    n_claims        = sum(claim_made),
-    claim_frequency = round(mean(claim_made), 3),
-    avg_claim_cost  = round(mean(claim_cost_gbp[claim_made == 1]), 0),
-    .groups = "drop"
-  )
-
-kable(class_summary,
-      caption   = "Table 1: Portfolio Summary by Policy Class",
-      col.names = c("Class", "Policies", "Total Premium (£)",
-                    "Avg Premium (£)", "Claims", "Claim Freq", "Avg Claim Cost (£)"),
-      format.args = list(big.mark = ","))
-```
-
-## Regional Distribution
-
-```{r region-table}
-# ── Count policies per region ─────────────────────────────────────────────
-region_summary <- motor %>%
-  group_by(region) %>%
-  summarise(
-    n_policies    = n(),
-    avg_premium   = round(mean(annual_premium_gbp), 0),
-    claim_freq    = round(mean(claim_made), 3),
-    .groups = "drop"
+    Policyholders = n(),
+    Claims        = sum(has_claim),
+    `Claim Rate`  = paste0(round(mean(has_claim) * 100, 1), "%")
   ) %>%
-  arrange(desc(n_policies))
-
-kable(region_summary,
-      caption   = "Table 2: Portfolio Distribution by Region",
-      col.names = c("Region", "Policies", "Avg Premium (£)", "Claim Freq"))
+  kable(caption = "Table 1: Claim Frequency by Policy Type")
 ```
 
-------------------------------------------------------------------------
+---
 
-# Loss Ratio Analysis
-
-## Calculating the Loss Ratio
-
-The **loss ratio** is a fundamental actuarial metric defined as:
-
-$$\text{Loss Ratio} = \frac{\text{Total Claims Incurred}}{\text{Total Premiums Earned}}$$
-
-A loss ratio above **1.0 (100%)** indicates that claims exceed premiums — a signal of underpricing or adverse claims experience.
-
-```{r loss-ratio}
-# ── Loss ratio by class ───────────────────────────────────────────────────
-loss_ratio <- motor %>%
-  group_by(policy_class) %>%
-  summarise(
-    total_premium = sum(annual_premium_gbp),
-    total_claims  = sum(claim_cost_gbp),
-    loss_ratio    = round(total_claims / total_premium, 3),
-    .groups = "drop"
-  )
-
-# ── Identify highest-risk class ───────────────────────────────────────────
-worst_class <- loss_ratio$policy_class[which.max(loss_ratio$loss_ratio)]
-worst_lr    <- max(loss_ratio$loss_ratio)
-
-kable(loss_ratio,
-      caption   = "Table 3: Loss Ratio by Policy Class",
-      col.names = c("Class", "Total Premium (£)", "Total Claims (£)", "Loss Ratio"),
-      format.args = list(big.mark = ","))
-```
-
-The policy class with the **highest loss ratio** is **`r worst_class`**, at **`r worst_lr`**. This class warrants attention in the next pricing review cycle.
-
-------------------------------------------------------------------------
-
-# Visualisations
-
-## Loss Ratio Chart
-
-```{r fig-loss-ratio, fig.cap="Figure 1: Loss Ratio by Policy Class", fig.width=7, fig.height=4}
-ggplot(loss_ratio, aes(x = reorder(policy_class, -loss_ratio),
-                        y = loss_ratio, fill = policy_class)) +
-  geom_col(width = 0.6) +
-  geom_hline(yintercept = 1.0, linetype = "dashed",
-             colour = "red", linewidth = 0.8) +
-  geom_text(aes(label = paste0(loss_ratio * 100, "%")),
-            vjust = -0.4, size = 4, fontface = "bold") +
-  scale_fill_manual(values = c("Comprehensive"    = "#1F4E79",
-                                "Third Party Only" = "#2E86AB",
-                                "Fire & Theft"     = "#A8DADC")) +
-  labs(
-    title    = "Loss Ratio by Policy Class — Q4 2024",
-    subtitle = "Red dashed line = break-even (100%)",
-    x        = "Policy Class",
-    y        = "Loss Ratio"
-  ) +
-  scale_y_continuous(labels = scales::percent_format()) +
-  theme_minimal(base_size = 12) +
-  theme(legend.position = "none",
-        plot.title       = element_text(face = "bold"))
-```
-
-## Claim Frequency by Region
-
-```{r fig-region, fig.cap="Figure 2: Claim Frequency by Region", fig.width=7, fig.height=4}
-ggplot(region_summary, aes(x = reorder(region, claim_freq),
-                            y = claim_freq, fill = claim_freq)) +
-  geom_col() +
-  coord_flip() +
-  scale_fill_gradient(low = "#BDD7EE", high = "#1F4E79") +
-  labs(
-    title = "Claim Frequency by Region",
-    x     = NULL,
-    y     = "Claim Frequency"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(legend.position = "none")
-```
-
-## Premium Distribution
-
-```{r fig-premium-dist, fig.cap="Figure 3: Premium Distribution by Policy Class", fig.width=7, fig.height=4}
-ggplot(motor, aes(x = annual_premium_gbp, fill = policy_class)) +
-  geom_histogram(bins = 20, alpha = 0.8, colour = "white") +
-  facet_wrap(~ policy_class, scales = "free_x") +
-  scale_fill_manual(values = c("Comprehensive"    = "#1F4E79",
-                                "Third Party Only" = "#2E86AB",
-                                "Fire & Theft"     = "#A8DADC")) +
-  labs(
-    title = "Premium Distribution by Policy Class",
-    x     = "Annual Premium (£)",
-    y     = "Number of Policies"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(legend.position = "none")
-```
-
-------------------------------------------------------------------------
-
-# Risk Segmentation
-
-## ★ STUDENT EXERCISE — Complete this section during the lesson
-
-The section below is **intentionally incomplete**. During the lesson, you will:
-
-1.  Calculate the average loss ratio by **vehicle age band** (0–2 yrs, 3–5 yrs, 6+ yrs)
-2.  Produce a scatter plot of `policyholder_age` vs `annual_premium_gbp`, coloured by `claim_made`
-3.  Write one sentence of **inline R interpretation** using the result
-
-```{r risk-segmentation, eval=FALSE}
-# ── STEP 1: Create vehicle age bands ─────────────────────────────────────
-motor <- motor %>%
-  mutate(
-    age_band = case_when(
-      vehicle_age <= 2 ~ "0-2 years",
-      vehicle_age <= 5 ~ "3-5 years",
-      TRUE             ~ "6+ years"
-    )
-  )
-
-# ── STEP 2: Your code here ────────────────────────────────────────────────
-# Group by age_band and calculate: n_policies, avg_premium, claim_freq, loss_ratio
-# Hint: use group_by() and summarise()
-
-age_band_summary <- motor %>%
-  group_by(___) %>%
-  summarise(
-    n_policies    = n(),
-    avg_premium   = ___,
-    claim_freq    = ___,
-    total_premium = ___,
-    total_claims  = ___,
-    loss_ratio    = ___
-  )
-
-kable(age_band_summary, caption = "Table 4: Loss Ratio by Vehicle Age Band")
-
-
-# ── STEP 3: Scatter plot ──────────────────────────────────────────────────
-ggplot(motor, aes(x = ___, y = ___, colour = factor(claim_made))) +
-  geom_point(alpha = 0.7, size = 2) +
-  labs(title = "Policyholder Age vs Annual Premium",
-       colour = "Claim Made")
-```
-
-------------------------------------------------------------------------
-
-# Key Findings
-
-```{r key-findings}
-# ── Summary statistics for narrative ─────────────────────────────────────
-total_policies  <- nrow(motor)
-total_premium   <- sum(motor$annual_premium_gbp)
-total_claims_n  <- sum(motor$claim_made)
-overall_freq    <- round(mean(motor$claim_made), 3)
-overall_lr      <- round(sum(motor$claim_cost_gbp) / sum(motor$annual_premium_gbp), 3)
-```
-
-Based on the Q4 2024 portfolio analysis:
-
--   The portfolio comprises **`r total_policies` policies** with total GWP of **£`r format(total_premium, big.mark=",")`**.
--   **`r total_claims_n` claims** were reported, giving an overall claim frequency of **`r overall_freq * 100`%**.
--   The portfolio-level loss ratio stands at **`r overall_lr * 100`%**.
--   `r worst_class` has the highest loss ratio at `r worst_lr * 100`%, suggesting a pricing review may be warranted.
-
-------------------------------------------------------------------------
-
-*Report generated automatically using R Markdown. Re-knit with updated data to refresh all figures and narrative.*
+*Report generated automatically using R Markdown. Data source: `policyholders.csv`.*
