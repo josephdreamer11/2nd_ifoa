@@ -1,386 +1,157 @@
 ---
-title: "Policy Data Cleaning & Preparation"
-subtitle: "Advanced R for Actuarial Statistics — Lesson 3 Business Case"
+title: "Policyholder Data Cleaning Report"
+subtitle: "Tidy Data & Advanced Cleaning — Actuarial Analytics Division"
 author: "Actuarial Analytics Team"
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%B %Y')`"
 output:
   html_document:
     toc: true
-    toc_depth: 2
     toc_float: true
-    theme: flatly
     number_sections: true
-    df_print: kable
+    theme: flatly
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
----
+```{r load-data}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+
+raw <- read_csv("policyholders_messy.csv")
+```
 
 # Overview
 
-Real actuarial data is rarely clean. This business case works through a realistic
-**policy administration extract** — 25 records from a motor insurance portfolio —
-that contains every data quality problem you will commonly encounter in practice:
-
-- Inconsistent date formats (`15/03/1985`, `2024-01-01`, `Jan 5 2024`, ...)
-- Mixed-case and whitespace issues in text fields
-- Non-standard premium values (`£852.00` as a string)
-- Free-text notes fields requiring extraction
-
-We will clean this dataset using three packages:
-
-| Package | Purpose |
-|---|---|
-| `tidyr` | Reshaping and structural cleaning |
-| `stringr` | String detection, replacement, extraction |
-| `lubridate` | Date parsing and arithmetic |
-
-> **Data file:** `lesson3_raw_policies.csv` — place in your working directory before knitting.
+This report documents the cleaning pipeline applied to the raw policyholder extract.
+The raw dataset contains **`r nrow(raw)`** records across
+**`r ncol(raw)`** fields. Before any analysis can begin, the data must be
+standardised, parsed, and reshaped into a tidy format.
 
 ---
 
-# Load & Inspect
+# Step 1 — Standardise Text Fields (stringr)
 
-```{r load}
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(lubridate)
+Raw `gender` and `policy_type` fields contain inconsistent capitalisation,
+leading/trailing whitespace, and non-standard abbreviations.
 
-raw <- read.csv("lesson3_raw_policies.csv",
-                stringsAsFactors = FALSE,
-                na.strings        = c("", "NA", "N/A"))
-
-# Dimensions
-dim(raw)
-
-# Column types as-read
-glimpse(raw)
-```
-
-## Initial Quality Flags
-
-```{r quality-flags}
-# Quick count of NAs per column
-na_counts <- colSums(is.na(raw))
-na_counts[na_counts > 0]
-```
-
-At this stage every date column is `chr` — R has no idea they are dates yet.
-The `premium_gbp` column contains pound signs, making it character not numeric.
-`cover_type` has at least five different spellings of the same three values.
-
----
-
-# Step 1 — Clean Policyholder Names (stringr)
-
-Names arrive in inconsistent case and with extra whitespace.
-
-```{r clean-names}
-policies <- raw %>%
+```{r clean-text, echo=TRUE}
+cleaned <- raw %>%
   mutate(
-    # Collapse multiple internal spaces to one, strip leading/trailing
-    policyholder_name = str_squish(policyholder_name),
-
-    # Convert to title case: "john smith" → "John Smith"
-    policyholder_name = str_to_title(policyholder_name)
-  )
-
-# Verify
-policies %>% select(policy_ref, policyholder_name) %>% head(8)
-```
-
-**What changed?**
-`str_squish()` handles the `"David    Brown"` and `"Peter  Clarke"` cases.
-`str_to_title()` fixes both all-caps (`"ROBERT JOHNSON"`) and all-lower (`"jane doe"`) entries.
-
----
-
-# Step 2 — Standardise Cover Type (stringr)
-
-```{r clean-cover}
-policies <- policies %>%
-  mutate(
-    # Uppercase everything first, then recode to canonical labels
-    cover_type = str_to_upper(str_trim(cover_type)),
-    cover_type = case_when(
-      str_detect(cover_type, "COMP")        ~ "Comprehensive",
-      str_detect(cover_type, "THIRD|3RD")   ~ "Third Party Only",
-      str_detect(cover_type, "FIRE")        ~ "Fire & Theft",
-      TRUE                                  ~ NA_character_
-    )
-  )
-
-table(policies$cover_type)
-```
-
-`str_detect()` uses partial matching, so `"COMPREHENSIVE"`, `"comprehensive"`,
-and `"Comprehensive"` all collapse to the same canonical value.
-
----
-
-# Step 3 — Clean Region Codes (stringr)
-
-```{r clean-region}
-policies <- policies %>%
-  mutate(
-    region_code = str_trim(region_code)   # removes leading/trailing spaces
-  )
-
-sort(unique(policies$region_code))
-```
-
-Several region codes had invisible trailing spaces (`"LDN "`, `" SE"`) that would
-cause silent grouping errors downstream. `str_trim()` is a one-liner fix.
-
----
-
-# Step 4 — Parse Premium to Numeric (stringr)
-
-```{r clean-premium}
-policies <- policies %>%
-  mutate(
-    # Remove £ sign and commas, then coerce to numeric
-    premium_gbp = str_remove_all(premium_gbp, "[£,]"),
-    premium_gbp = as.numeric(premium_gbp)
-  )
-
-summary(policies$premium_gbp)
-```
-
-`str_remove_all()` with a character class `[£,]` removes every occurrence of
-either symbol. After that, `as.numeric()` succeeds cleanly.
-
----
-
-# Step 5 — Parse Dates (lubridate)
-
-This is usually the hardest step. Our dataset contains **six different date formats**:
-
-```
-15/03/1985    (dmy)
-22-08-1990    (dmy with dash)
-1978.11.05    (ymd with dot)
-Jan 5 2024    (mdy text)
-2024/01/15    (ymd with slash)
-July 1 2024   (mdy text, full month name)
-```
-
-lubridate's `parse_date_time()` accepts a vector of format orders and tries each one:
-
-```{r parse-dates}
-date_formats <- c("dmy", "ymd", "mdy", "dmy", "ymd", "mdy")
-
-policies <- policies %>%
-  mutate(
-    dob          = parse_date_time(dob,          orders = date_formats),
-    policy_start = parse_date_time(policy_start, orders = date_formats),
-    policy_end   = parse_date_time(policy_end,   orders = date_formats),
-    claim_date   = parse_date_time(claim_date,   orders = date_formats),
-
-    # Coerce to Date (drops the time component)
-    dob          = as.Date(dob),
-    policy_start = as.Date(policy_start),
-    policy_end   = as.Date(policy_end),
-    claim_date   = as.Date(claim_date)
-  )
-
-# Verify
-policies %>%
-  select(policy_ref, dob, policy_start, policy_end, claim_date) %>%
-  head(6)
-```
-
----
-
-# Step 6 — Derive Actuarial Variables (lubridate)
-
-Once dates are parsed, we can compute derived fields that are essential for
-actuarial analysis.
-
-```{r derive-dates}
-reference_date <- as.Date("2025-01-01")
-
-policies <- policies %>%
-  mutate(
-    # Age at policy start (in whole years)
-    age_at_start = as.integer(
-      interval(dob, policy_start) / years(1)
+    gender = str_to_lower(str_trim(gender)),
+    gender = case_when(
+      gender %in% c("m", "male")   ~ "Male",
+      gender %in% c("f", "female") ~ "Female",
+      TRUE ~ NA_character_
     ),
-
-    # Policy duration in days
-    policy_duration_days = as.integer(policy_end - policy_start),
-
-    # Days from policy start to claim (NA if no claim)
-    days_to_claim = as.integer(claim_date - policy_start),
-
-    # Policy status: Active or Expired as at reference date
-    policy_status = if_else(policy_end >= reference_date, "Active", "Expired")
+    policy_type = str_to_title(str_trim(policy_type))
   )
-
-policies %>%
-  select(policy_ref, age_at_start, policy_duration_days,
-         days_to_claim, policy_status) %>%
-  head(8)
 ```
 
-**Key lubridate functions used:**
-
-| Function | Purpose |
-|---|---|
-| `interval(start, end)` | Creates a time interval object |
-| `years(1)` | Divides interval into whole years |
-| `as.integer(date2 - date1)` | Difference in days |
-| `if_else()` | Vectorised conditional |
+```{r text-check}
+cleaned %>%
+  count(policy_type, gender) %>%
+  kable(caption = "Table 1: Standardised Policy Type × Gender Counts")
+```
 
 ---
 
-# Step 7 — Reshape with tidyr (Bonus)
+# Step 2 — Parse Dates (lubridate)
 
-Sometimes raw data arrives in wide format. Here we demonstrate `pivot_longer()`
-by reshaping the date columns into a long format — useful for timeline visualisations.
+The `policy_start_date` field was supplied in mixed formats across source systems.
+`parse_date_time()` handles all observed formats in a single call.
 
-```{r pivot-longer}
-# Select a subset for demonstration
-date_long <- policies %>%
-  select(policy_ref, policyholder_name,
-         policy_start, policy_end, claim_date) %>%
-  pivot_longer(
-    cols      = c(policy_start, policy_end, claim_date),
-    names_to  = "date_type",
-    values_to = "date_value"
-  ) %>%
-  filter(!is.na(date_value)) %>%
-  arrange(policy_ref, date_value)
-
-head(date_long, 10)
-```
-
-`pivot_longer()` takes multiple columns and stacks them into two:
-`date_type` (which column the value came from) and `date_value` (the actual date).
-This format is often needed for `ggplot2` timelines and survival analysis inputs.
-
----
-
-# Step 8 — Extract from Free Text (stringr)
-
-The `notes` field contains unstructured text. We can extract structured signals:
-
-```{r extract-notes}
-policies <- policies %>%
+```{r parse-dates, echo=TRUE}
+cleaned <- cleaned %>%
   mutate(
-    # Flag policies mentioning a number of claims
-    multi_claim_flag = str_detect(
-      str_to_lower(notes),
-      "two claim|multiple|third party only damage"
+    policy_start_date = parse_date_time(
+      policy_start_date,
+      orders = c("ymd", "dmy", "mdy", "d b Y")
     ),
-
-    # Extract years of no-claims mentioned in notes (e.g. "4 years")
-    ncb_years_noted = str_extract(notes, "\\d+(?= year)")
+    policy_year  = year(policy_start_date),
+    policy_month = month(policy_start_date, label = TRUE)
   )
+```
 
-policies %>%
-  filter(!is.na(notes)) %>%
-  select(policy_ref, notes, multi_claim_flag, ncb_years_noted) %>%
-  head(8)
+```{r date-check}
+cleaned %>%
+  count(policy_year) %>%
+  kable(caption = "Table 2: Policy Count by Inception Year")
 ```
 
 ---
 
-# ★ STUDENT EXERCISE
+# Step 3 — Reshape with tidyr
 
-The section below is **intentionally incomplete** (`eval=FALSE`).
-Change to `eval=TRUE` and fill in the blanks.
+To compare premium bands across policy types, we create a wide summary table
+using `pivot_wider()`.
 
-**Tasks:**
+```{r reshape, echo=TRUE}
+premium_summary <- cleaned %>%
+  filter(!is.na(annual_premium)) %>%
+  mutate(premium_band = case_when(
+    annual_premium < 1000 ~ "Low",
+    annual_premium < 2000 ~ "Mid",
+    TRUE                  ~ "High"
+  )) %>%
+  count(policy_type, premium_band) %>%
+  pivot_wider(names_from = premium_band, values_from = n, values_fill = 0)
+```
 
-1. Create a new column `age_band` grouping `age_at_start` into:
-   `"Under 25"`, `"25–39"`, `"40–59"`, `"60+"` using `case_when()`
-2. Summarise the cleaned dataset by `cover_type` to show:
-   mean premium, mean age at start, claim frequency, mean days to claim
-3. Use `str_pad()` to create a formatted policy reference like `"Policy: POL-0001"`
-
-```{r student-exercise, eval=FALSE}
-# Task 1 — Age bands
-policies <- policies %>%
-  mutate(
-    age_band = case_when(
-      age_at_start < ___          ~ "Under 25",
-      age_at_start < ___          ~ "25-39",
-      age_at_start < ___          ~ "40-59",
-      TRUE                        ~ "60+"
-    )
-  )
-
-# Task 2 — Summary table by cover type
-summary_table <- policies %>%
-  group_by(___) %>%
-  summarise(
-    n              = n(),
-    mean_premium   = round(mean(___), 0),
-    mean_age       = round(mean(___), 1),
-    claim_freq     = round(mean(claim_flag == ___), 3),
-    mean_days_claim = round(mean(___, na.rm = TRUE), 0)
-  )
-
-knitr::kable(summary_table, caption = "Table: Cleaned Portfolio Summary by Cover Type")
-
-# Task 3 — Formatted reference
-policies <- policies %>%
-  mutate(
-    policy_label = str_c("Policy: ", ___)
-  )
-
-head(policies$policy_label)
+```{r reshape-table}
+premium_summary %>%
+  kable(caption = "Table 3: Policyholder Count by Policy Type and Premium Band")
 ```
 
 ---
 
-# Final Clean Dataset
+# Step 4 — Handle Missing Values
 
-```{r final-dataset}
-# Select the columns we want in the clean output
-clean_policies <- policies %>%
-  select(
-    policy_ref,
-    policyholder_name,
-    dob,
-    age_at_start,
-    policy_start,
-    policy_end,
-    policy_duration_days,
-    policy_status,
-    cover_type,
-    region_code,
-    premium_gbp,
-    claim_flag,
-    claim_date,
-    days_to_claim
+```{r missing, echo=TRUE}
+cleaned <- cleaned %>%
+  mutate(
+    age            = suppressWarnings(as.numeric(age)),
+    annual_premium = as.numeric(annual_premium)
   ) %>%
-  arrange(policy_ref)
-
-# Summary of what we've fixed
-cat("Records:", nrow(clean_policies), "\n")
-cat("Remaining NAs in key columns:\n")
-print(colSums(is.na(clean_policies[, c("cover_type","premium_gbp",
-                                        "policy_start","age_at_start")])))
+  filter(!is.na(age), !is.na(annual_premium))
 ```
 
-## Data Quality Summary
-
-| Issue | Columns Affected | Fix Applied |
-|---|---|---|
-| Mixed case / extra spaces | `policyholder_name`, `cover_type`, `region_code` | `str_to_title()`, `str_squish()`, `str_trim()` |
-| Non-standard cover type labels | `cover_type` | `str_detect()` + `case_when()` |
-| Currency symbol in numeric field | `premium_gbp` | `str_remove_all()` + `as.numeric()` |
-| Six different date formats | `dob`, `policy_start`, `policy_end`, `claim_date` | `parse_date_time()` |
-| Derived variables not present | — | `interval()`, `years()`, date arithmetic |
-| Wide date format | Multiple date cols | `pivot_longer()` |
-| Unstructured notes | `notes` | `str_detect()`, `str_extract()` |
+```{r missing-summary}
+tibble(
+  Field           = c("age", "annual_premium", "gender", "policy_start_date"),
+  `Missing (raw)` = c(
+    sum(is.na(suppressWarnings(as.numeric(raw$age)))),
+    sum(is.na(as.numeric(raw$annual_premium))),
+    sum(is.na(raw$gender)),
+    sum(is.na(raw$policy_start_date))
+  ),
+  `Missing (cleaned)` = c(
+    sum(is.na(cleaned$age)),
+    sum(is.na(cleaned$annual_premium)),
+    sum(is.na(cleaned$gender)),
+    sum(is.na(cleaned$policy_start_date))
+  )
+) %>%
+  kable(caption = "Table 4: Missing Value Summary Before and After Cleaning")
+```
 
 ---
 
-*Report generated automatically using R Markdown. Re-knit with updated data to refresh all outputs.*
+# Clean Dataset — Final Preview
+
+```{r final-preview}
+cleaned %>%
+  select(policyholder_id, age, gender, policy_type,
+         annual_premium, policy_start_date, policy_year) %>%
+  head(8) %>%
+  kable(caption = "Table 5: Cleaned Dataset Preview (first 8 rows)")
+```
+
+**`r nrow(cleaned)`** records retained after cleaning
+(**`r nrow(raw) - nrow(cleaned)`** removed due to missing critical fields).
+
+---
+
+*Report generated automatically using R Markdown. Data source: `policyholders_messy.csv`.*
