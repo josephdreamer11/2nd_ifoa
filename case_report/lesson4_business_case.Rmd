@@ -20,7 +20,7 @@ library(tidyverse)
 library(knitr)
 library(skimr)
 
-policyholders <- read_csv("policyholders.csv") %>%
+policyholders <- read_csv("L2_policyholders.csv") %>%
   mutate(churned = if_else(policy_duration_months < 24, 1, 0))
 ```
 
