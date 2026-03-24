@@ -1,359 +1,138 @@
 ---
-title: "Visualization for Time Series & Retention Curves"
-subtitle: "Advanced R for Actuarial Statistics — Lesson 5 Business Case"
+title: "Time Series & Retention Curve Visualisation"
+subtitle: "Exploratory Visualisation — Actuarial Analytics Division"
 author: "Actuarial Analytics Team"
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%B %Y')`"
 output:
   html_document:
     toc: true
-    toc_depth: 2
     toc_float: true
-    theme: flatly
     number_sections: true
-    df_print: kable
+    theme: flatly
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
-                      fig.width = 8, fig.height = 4.5)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
----
+```{r load-data}
+library(tidyverse)
+library(forecast)
+library(knitr)
+
+policyholders  <- read_csv("policyholders.csv")
+monthly_premiums <- read_csv("monthly_premiums.csv") %>%
+  mutate(month = as.Date(month))
+```
 
 # Overview
 
-This business case builds on the EDA from Lesson 4. Having identified *what*
-the churn patterns are, we now focus on *when* and *how* they evolve over time.
-
-| File | Content |
-|---|---|
-| `lesson5_monthly_ts.csv` | 36-month aggregated portfolio metrics (Jan 2022–Dec 2024) |
-| `lesson5_cohort_retention.csv` | 8 quarterly cohorts tracked over 12 months |
-| `lesson4_churn_eda.csv` | Individual-level data for cohort construction demo |
-
-> Place all three CSV files in your working directory before knitting.
+This report visualises two key actuarial data structures: a **monthly premium
+income time series** spanning `r format(min(monthly_premiums$month), '%B %Y')`
+to `r format(max(monthly_premiums$month), '%B %Y')`, and **policyholder
+retention curves** derived from the portfolio dataset.
 
 ---
 
-# Setup
+# Premium Income Time Series
 
-```{r load}
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(lubridate)
-library(scales)
+## Monthly Premium Trend
 
-ts_data <- read.csv("lesson5_monthly_ts.csv", stringsAsFactors = FALSE) %>%
-  mutate(
-    month        = as.Date(paste0(month, "-01")),
-    product_type = factor(product_type, levels = c("Motor", "Home", "Life"))
-  )
-
-cohort <- read.csv("lesson5_cohort_retention.csv", stringsAsFactors = FALSE) %>%
-  mutate(
-    cohort_quarter = factor(cohort_quarter,
-                            levels = c("Q1-2022","Q2-2022","Q3-2022","Q4-2022",
-                                       "Q1-2023","Q2-2023","Q3-2023","Q4-2023"))
-  )
-
-churn <- read.csv("lesson4_churn_eda.csv", stringsAsFactors = FALSE,
-                  na.strings = c("", "NA")) %>%
-  mutate(
-    join_date    = as.Date(join_date),
-    churn_date   = as.Date(churn_date),
-    obs_date     = as.Date("2024-06-01"),
-    churn_label  = if_else(churn_flag == 1, "Churned", "Active"),
-    product_type = factor(product_type, levels = c("Motor", "Home", "Life"))
-  )
-
-glimpse(ts_data)
+```{r ts-object, echo=TRUE}
+premium_ts <- ts(
+  monthly_premiums$total_premium,
+  start     = c(2019, 1),
+  frequency = 12
+)
 ```
 
----
+```{r autoplot, echo=TRUE, fig.width=8, fig.height=4,
+    fig.cap="Figure 1: Monthly Premium Income (Jan 2019 – Dec 2023)"}
+autoplot(premium_ts) +
+  labs(title = "Monthly Premium Income",
+       x     = "Date",
+       y     = "Total Premium (£)") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  theme_minimal(base_size = 12)
+```
 
-# Time Series: Portfolio Growth
+## ggplot Version with Date Axis
 
-## Multi-Line Chart
-
-```{r fig-active-line, fig.cap="Figure 1: Active Policy Count Over Time by Product"}
-ggplot(ts_data, aes(x = month, y = active_policies,
-                    colour = product_type, group = product_type)) +
-  geom_line(linewidth = 1.1) +
-  geom_point(size = 1.8, alpha = 0.7) +
-  scale_colour_manual(values = c("Motor"="#C55A11","Home"="#1F4E79","Life"="#2E86AB")) +
+```{r ggplot-ts, echo=TRUE, fig.width=8, fig.height=4,
+    fig.cap="Figure 2: Monthly Premium Income with Formatted Date Axis"}
+ggplot(monthly_premiums, aes(x = month, y = total_premium)) +
+  geom_line(color = "#2c7bb6", linewidth = 0.8) +
+  geom_smooth(method = "lm", se = FALSE,
+              color = "#d7191c", linetype = "dashed", linewidth = 0.6) +
   scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
-  scale_y_continuous(labels = comma) +
-  labs(title  = "Active Policy Count — Jan 2022 to Dec 2024",
-       x = NULL, y = "Active Policies", colour = "Product") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title   = "Monthly Premium Income with Trend Line",
+       x = NULL, y = "Total Premium (£)") +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        plot.title   = element_text(face = "bold"))
-```
-
-## Annotated Chart
-
-```{r fig-annotated, fig.cap="Figure 2: Motor Policy Count with Event Annotation"}
-motor_ts         <- ts_data %>% filter(product_type == "Motor")
-rate_change_date <- as.Date("2023-01-01")
-
-ggplot(motor_ts, aes(x = month, y = active_policies)) +
-  geom_ribbon(aes(ymin = active_policies * 0.97,
-                  ymax = active_policies * 1.03),
-              fill = "#C55A11", alpha = 0.15) +
-  geom_line(colour = "#C55A11", linewidth = 1.2) +
-  geom_vline(xintercept = as.numeric(rate_change_date),
-             linetype = "dashed", colour = "grey40", linewidth = 0.8) +
-  annotate("text", x = rate_change_date + 20,
-           y = max(motor_ts$active_policies) * 0.92,
-           label = "Rate\nChange", hjust = 0, size = 3.5, colour = "grey30") +
-  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
-  scale_y_continuous(labels = comma) +
-  labs(title = "Motor: Active Policies with Confidence Band",
-       x = NULL, y = "Active Policies") +
-  theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        plot.title   = element_text(face = "bold"))
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
 ---
 
-# Seasonality: Claim Rate Heatmap
+# Retention Curves
 
-```{r fig-heatmap, fig.cap="Figure 3: Claim Rate Heatmap by Month and Product"}
-ts_data %>%
-  mutate(yr = year(month), mon = month(month, label = TRUE, abbr = TRUE)) %>%
-  ggplot(aes(x = mon, y = factor(yr), fill = claim_rate)) +
-  geom_tile(colour = "white", linewidth = 0.5) +
-  facet_wrap(~ product_type) +
-  scale_fill_gradient2(low = "#BDD7EE", mid = "#1F4E79", high = "#C55A11",
-                       midpoint = 0.08,
-                       labels = percent_format(accuracy = 0.1)) +
-  labs(title = "Claim Rate Heatmap — by Month, Year, and Product",
-       x = NULL, y = NULL, fill = "Claim Rate") +
-  theme_minimal(base_size = 11) +
-  theme(plot.title = element_text(face = "bold"),
-        strip.text  = element_text(face = "bold"))
-```
+## Empirical Retention by Policy Type
 
-Motor claims peak in November–February — consistent with winter driving
-conditions. Life shows almost no seasonality, as expected actuarially.
-
-## LOESS Trend on Churn Rate
-
-```{r fig-churn-trend, fig.cap="Figure 4: Monthly Churn Rate with Smoothed Trend"}
-ts_data %>%
-  mutate(churn_rate_pct = churned_policies / active_policies * 100) %>%
-  ggplot(aes(x = month, y = churn_rate_pct,
-             colour = product_type, group = product_type)) +
-  geom_line(alpha = 0.4, linewidth = 0.7) +
-  geom_smooth(method = "loess", se = FALSE, linewidth = 1.3, span = 0.4) +
-  scale_colour_manual(values = c("Motor"="#C55A11","Home"="#1F4E79","Life"="#2E86AB")) +
-  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
-  labs(title    = "Monthly Churn Rate with LOESS Smoothing",
-       subtitle  = "Thin = raw rate; thick = smoothed trend",
-       x = NULL, y = "Churn Rate (%)", colour = "Product") +
-  theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1),
-        plot.title   = element_text(face = "bold"))
-```
-
----
-
-# Cohort Retention Curves
-
-## All Cohorts
-
-```{r fig-cohort-all, fig.cap="Figure 5: Retention Curves — All 8 Cohorts"}
-ggplot(cohort, aes(x = month, y = retention_rate,
-                   colour = cohort_quarter, group = cohort_quarter)) +
-  geom_line(linewidth = 1.0, alpha = 0.85) +
-  geom_point(size = 1.5) +
-  scale_colour_manual(values = c(
-    "Q1-2022"="#1F4E79","Q2-2022"="#2E75B6","Q3-2022"="#2E86AB","Q4-2022"="#70AD47",
-    "Q1-2023"="#FFC000","Q2-2023"="#ED7D31","Q3-2023"="#C55A11","Q4-2023"="#7030A0"
-  )) +
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0.55, 1.01)) +
-  scale_x_continuous(breaks = 1:12) +
-  labs(title    = "Retention Curves by Quarterly Cohort",
-       subtitle  = "Month 1 = 100% by definition",
-       x = "Months Since Joining", y = "Retention Rate", colour = "Cohort") +
-  theme_minimal(base_size = 12) +
-  theme(plot.title = element_text(face = "bold"))
-```
-
-## 2022 vs 2023 Cohort Comparison
-
-```{r fig-cohort-compare, fig.cap="Figure 6: Average Retention — 2022 vs 2023 Cohorts"}
-cohort %>%
-  mutate(era = if_else(cohort_quarter %in% c("Q1-2022","Q2-2022","Q3-2022","Q4-2022"),
-                       "2022 Cohorts", "2023 Cohorts")) %>%
-  group_by(era, month) %>%
-  summarise(avg_ret = mean(retention_rate), .groups = "drop") %>%
-  ggplot(aes(x = month, y = avg_ret, colour = era, fill = era, group = era)) +
-  geom_ribbon(aes(ymin = avg_ret - 0.02, ymax = avg_ret + 0.02),
-              alpha = 0.12, colour = NA) +
-  geom_line(linewidth = 1.4) +
-  geom_point(size = 2.5) +
-  scale_colour_manual(values = c("2022 Cohorts"="#1F4E79","2023 Cohorts"="#C55A11")) +
-  scale_fill_manual(values   = c("2022 Cohorts"="#1F4E79","2023 Cohorts"="#C55A11")) +
-  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0.55, 1.01)) +
-  scale_x_continuous(breaks = 1:12) +
-  labs(title    = "Average Retention: 2022 vs 2023 Cohorts",
-       subtitle  = "Shaded band = ±2 pp",
-       x = "Months Since Joining", y = "Average Retention Rate",
-       colour = NULL, fill = NULL) +
-  theme_minimal(base_size = 12) +
-  theme(plot.title = element_text(face = "bold"))
-```
-
-## Cohort Retention Heatmap
-
-```{r fig-cohort-heatmap, fig.cap="Figure 7: Cohort Retention Heatmap"}
-ggplot(cohort, aes(x = factor(month), y = cohort_quarter, fill = retention_rate)) +
-  geom_tile(colour = "white", linewidth = 0.6) +
-  geom_text(aes(label = scales::percent(retention_rate, accuracy = 1)),
-            size = 2.8, colour = "white", fontface = "bold") +
-  scale_fill_gradient2(low = "#C55A11", mid = "#1F4E79", high = "#BDD7EE",
-                       midpoint = 0.78,
-                       labels = percent_format(accuracy = 1)) +
-  scale_x_discrete(labels = paste0("M", 1:12)) +
-  labs(title = "Cohort Retention Heatmap",
-       x = "Month Since Joining", y = "Cohort", fill = "Retention") +
-  theme_minimal(base_size = 11) +
-  theme(plot.title = element_text(face = "bold"),
-        axis.text.y = element_text(size = 9))
-```
-
----
-
-# Build Cohort Table from Individual Data
-
-```{r build-cohort}
-churn_cohort <- churn %>%
+```{r retention-data, echo=TRUE}
+retention <- policyholders %>%
+  group_by(policy_type, policy_duration_months) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  arrange(policy_type, policy_duration_months) %>%
+  group_by(policy_type) %>%
   mutate(
-    cohort = case_when(
-      join_date < as.Date("2019-07-01") ~ "H1-2019",
-      join_date < as.Date("2020-01-01") ~ "H2-2019",
-      join_date < as.Date("2020-07-01") ~ "H1-2020",
-      join_date < as.Date("2021-01-01") ~ "H2-2020",
-      join_date < as.Date("2021-07-01") ~ "H1-2021",
-      join_date < as.Date("2022-01-01") ~ "H2-2021",
-      TRUE                              ~ "H1-2022+"
-    )
+    total        = sum(n),
+    survivors    = total - cumsum(lag(n, default = 0)),
+    retention_pct = survivors / total * 100
   )
-
-retention_milestones <- churn_cohort %>%
-  mutate(
-    tenure_months = as.integer(
-      interval(join_date, if_else(!is.na(churn_date), churn_date, obs_date))
-      / months(1)
-    )
-  ) %>%
-  group_by(cohort) %>%
-  summarise(
-    size     = n(),
-    ret_12mo = round(mean(tenure_months >= 12 | churn_flag == 0) * 100, 1),
-    ret_24mo = round(mean(tenure_months >= 24 | churn_flag == 0) * 100, 1),
-    ret_36mo = round(mean(tenure_months >= 36 | churn_flag == 0) * 100, 1),
-    .groups  = "drop"
-  )
-
-knitr::kable(retention_milestones,
-             col.names = c("Cohort", "Size", "Ret @ 12mo (%)",
-                           "Ret @ 24mo (%)", "Ret @ 36mo (%)"),
-             caption   = "Table 1: Retention at Key Milestones by Cohort")
 ```
 
----
+```{r retention-plot, echo=TRUE, fig.width=8, fig.height=5,
+    fig.cap="Figure 3: Empirical Retention Curves by Policy Type"}
+ggplot(retention, aes(x = policy_duration_months,
+                      y = retention_pct,
+                      color = policy_type)) +
+  geom_step(linewidth = 0.8) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_continuous(limits = c(0, 100),
+                     labels = scales::percent_format(scale = 1)) +
+  scale_x_continuous(breaks = seq(0, 72, 12)) +
+  labs(title  = "Empirical Retention Curves by Policy Type",
+       x      = "Policy Duration (Months)",
+       y      = "Retention (%)",
+       color  = "Policy Type") +
+  theme_minimal(base_size = 12)
+```
 
-# STUDENT EXERCISE
+## Retention Summary at Key Durations
 
-Change `eval=FALSE` to `eval=TRUE` and complete the blanks.
-
-**Tasks:**
-
-1. Faceted line chart of `total_premium_gbp` over time — one panel per `product_type`
-2. Smoothed trend line on Motor active policy count using `geom_smooth()`
-3. Horizontal bar chart of 12-month retention rate, one bar per cohort, ordered highest to lowest
-
-```{r student-exercise, eval=FALSE}
-# Task 1 — Faceted premium time series
-ggplot(ts_data, aes(x = ___, y = total_premium_gbp, colour = product_type)) +
-  geom_line(linewidth = 1.1) +
-  facet_wrap(~ ___, scales = "free_y") +
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  scale_y_continuous(labels = ___) +
-  labs(title = "Total Premium GWP Over Time", x = NULL, y = "Total Premium (£)") +
-  theme_minimal() + theme(legend.position = "none")
-
-
-# Task 2 — Motor with smoothed trend
-motor_only <- ts_data %>% filter(___ == "Motor")
-
-ggplot(motor_only, aes(x = month, y = ___)) +
-  geom_line(colour = "#C55A11", alpha = 0.5) +
-  geom_smooth(method = "___", se = TRUE, colour = "#C55A11") +
-  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
-  labs(title = "Motor: Active Policy Count with Trend",
-       x = NULL, y = "Active Policies") +
-  theme_minimal()
-
-
-# Task 3 — Month-12 retention bar chart
-ret_12 <- cohort %>%
-  filter(month == ___) %>%
-  select(cohort_quarter, retention_rate)
-
-ggplot(ret_12, aes(x = reorder(cohort_quarter, retention_rate),
-                   y = ___,
-                   fill = retention_rate)) +
-  geom_col() +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1)) +
-  scale_fill_gradient(low = "#C55A11", high = "#1F4E79") +
-  labs(title = "12-Month Retention Rate by Cohort",
-       x = NULL, y = "Retention Rate") +
-  theme_minimal() + theme(legend.position = "none")
+```{r retention-table}
+retention %>%
+  filter(policy_duration_months %in% c(12, 24, 36, 48)) %>%
+  select(policy_type, policy_duration_months, retention_pct) %>%
+  mutate(retention_pct = paste0(round(retention_pct, 1), "%")) %>%
+  pivot_wider(names_from  = policy_duration_months,
+              values_from = retention_pct,
+              names_prefix = "Month ") %>%
+  kable(caption = "Table 1: Retention Rate at Key Durations by Policy Type")
 ```
 
 ---
 
 # Key Findings
 
-```{r key-findings}
-avg_12mo_ret <- cohort %>%
-  filter(month == 12) %>%
-  summarise(avg = round(mean(retention_rate) * 100, 1)) %>%
-  pull(avg)
-
-motor_peak_churn <- ts_data %>%
-  filter(product_type == "Motor") %>%
-  mutate(cr = churned_policies / active_policies) %>%
-  arrange(desc(cr)) %>%
-  slice(1) %>%
-  mutate(label = format(month, "%B %Y")) %>%
-  pull(label)
-
-total_gwp_dec24 <- ts_data %>%
-  filter(month == as.Date("2024-12-01")) %>%
-  summarise(total = sum(total_premium_gbp)) %>%
-  pull(total)
-```
-
-- Average **12-month retention across all cohorts: `r avg_12mo_ret`%** —
-  roughly 1 in 4 new customers does not reach first renewal.
-- Highest Motor churn month: **`r motor_peak_churn`** — consistent with
-  winter renewal pressure and price comparison activity.
-- Total portfolio GWP at December 2024:
-  **£`r format(total_gwp_dec24, big.mark=",")`**.
-- 2023 cohorts show systematically lower 12-month retention than 2022 —
-  a signal of deteriorating new business quality or channel mix shift.
-
-> **Next step:** Lessons 6–9 introduce formal time series modelling —
-> `ts`, `xts`, ACF/PACF, and ARIMA — adding statistical rigour to
-> the patterns visualised here.
+- Premium income shows a clear **upward trend** over the observation period,
+  with seasonal variation in winter months.
+- Retention curves differ by product line — some products show steeper
+  early-duration drop-off, which has implications for pricing and reserving.
+- The 12-month and 24-month retention rates are particularly relevant for
+  IFoA CS2 lapse modelling assumptions.
 
 ---
 
-*Generated automatically with R Markdown. Re-knit with updated data to refresh.*
+*Report generated automatically using R Markdown.
+Data sources: `policyholders.csv`, `monthly_premiums.csv`.*
