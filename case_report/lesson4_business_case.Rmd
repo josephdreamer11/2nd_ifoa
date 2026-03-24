@@ -60,8 +60,7 @@ churn_by_type %>%
   kable(caption = "Table 1: Churn Rate by Policy Type")
 ```
 
-```{r churn-type-plot, echo=FALSE, fig.width=7, fig.height=4,
-    fig.cap="Figure 1: Churn Rate by Policy Type"}
+```{r churn-type-plot, echo=FALSE, fig.width=7, fig.height=4, fig.cap="Figure 1: Churn Rate by Policy Type"}
 policyholders %>%
   group_by(policy_type) %>%
   summarise(churn_rate = mean(churned) * 100) %>%
@@ -84,8 +83,7 @@ policyholders %>%
 
 # Churn Rate by Region
 
-```{r churn-by-region, echo=FALSE, fig.width=7, fig.height=4,
-    fig.cap="Figure 2: Churn Rate by Region"}
+```{r churn-by-region, echo=FALSE, fig.width=7, fig.height=4,fig.cap="Figure 2: Churn Rate by Region"}
 policyholders %>%
   group_by(region) %>%
   summarise(churn_rate = mean(churned) * 100) %>%
@@ -108,8 +106,7 @@ policyholders %>%
 
 # Age Distribution by Churn Status
 
-```{r age-churn, echo=FALSE, fig.width=7, fig.height=4,
-    fig.cap="Figure 3: Age Distribution by Churn Status"}
+```{r age-churn, echo=FALSE, fig.width=7, fig.height=4, fig.cap="Figure 3: Age Distribution by Churn Status"}
 policyholders %>%
   mutate(Status = if_else(churned == 1, "Churned", "Retained")) %>%
   ggplot(aes(x = age, fill = Status)) +
