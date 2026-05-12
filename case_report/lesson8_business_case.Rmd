@@ -1,0 +1,160 @@
+---
+title: "ARIMA Modelling of Monthly Premium Income"
+subtitle: "Time Series Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(forecast)
+library(knitr)
+
+monthly_premiums <- read_csv("L5_monthly_premiums.csv") %>%
+  mutate(month = as.Date(month))
+
+premium_ts <- ts(
+  monthly_premiums$total_premium,
+  start     = c(2019, 1),
+  frequency = 12
+)
+```
+
+# Overview
+
+This report fits an ARIMA model to the monthly premium income series
+analysed in Lesson 7. The series runs from
+**`r format(min(monthly_premiums$month), '%B %Y')`** to
+**`r format(max(monthly_premiums$month), '%B %Y')`**
+(**`r length(premium_ts)`** observations).
+
+Lesson 7 diagnostics indicated: slow ACF decay suggesting differencing
+is required, and PACF cutting off after lag 1 suggesting an AR(1)
+structure. These findings guide the model specification below.
+
+---
+
+# Step 1 — Determine Differencing Order
+
+```{r ndiffs, echo=TRUE}
+d  <- ndiffs(premium_ts)
+ds <- nsdiffs(premium_ts)
+
+cat("Non-seasonal differences required:", d,  "\n")
+cat("Seasonal differences required:    ", ds, "\n")
+```
+
+---
+
+# Step 2 — Automatic Model Selection
+
+```{r auto-arima, echo=TRUE}
+model_auto <- auto.arima(
+  premium_ts,
+  stepwise   = FALSE,
+  approximation = FALSE
+)
+
+summary(model_auto)
+```
+
+```{r auto-arima-order}
+ord <- arimaorder(model_auto)
+cat("Selected order: ARIMA(",
+    ord["p"], ",", ord["d"], ",", ord["q"], ")",
+    "× (", ord["P"], ",", ord["D"], ",", ord["Q"], ")[12]\n")
+```
+
+---
+
+# Step 3 — Manual Model for Comparison
+
+```{r manual-arima, echo=TRUE}
+model_manual <- Arima(
+  premium_ts,
+  order    = c(1, 1, 0),
+  seasonal = c(1, 1, 0)
+)
+
+summary(model_manual)
+```
+
+---
+
+# Step 4 — Model Comparison
+
+```{r model-comparison}
+tibble(
+  Model = c(
+    paste0("auto.arima — ARIMA(",
+           arimaorder(model_auto)["p"], ",",
+           arimaorder(model_auto)["d"], ",",
+           arimaorder(model_auto)["q"], ")(",
+           arimaorder(model_auto)["P"], ",",
+           arimaorder(model_auto)["D"], ",",
+           arimaorder(model_auto)["Q"], ")[12]"),
+    "Manual — ARIMA(1,1,0)(1,1,0)[12]"
+  ),
+  AIC  = round(c(model_auto$aic,   model_manual$aic),   2),
+  BIC  = round(c(model_auto$bic,   model_manual$bic),   2),
+  RMSE = round(c(accuracy(model_auto)[, "RMSE"],
+                  accuracy(model_manual)[, "RMSE"]), 2)
+) %>%
+  kable(caption = "Table 1: Model Comparison — AIC, BIC, RMSE")
+```
+
+---
+
+# Step 5 — Residual Diagnostics
+
+## Auto ARIMA Residuals
+
+```{r residuals-auto, echo=TRUE, fig.width=8, fig.height=5,fig.cap="Figure 1: Residual Diagnostics — auto.arima Model"}
+checkresiduals(model_auto)
+```
+
+## Ljung-Box Test
+
+```{r ljung-box, echo=TRUE}
+lb_test <- Box.test(residuals(model_auto),
+                    lag    = 24,
+                    type   = "Ljung-Box",
+                    fitdf  = sum(arimaorder(model_auto)[c("p","q","P","Q")]))
+
+cat("Ljung-Box p-value (lag 24):", round(lb_test$p.value, 4), "\n")
+cat("Interpretation:",
+    ifelse(lb_test$p.value > 0.05,
+           "Residuals are consistent with white noise.",
+           "Residuals show remaining autocorrelation — model may need revision."),
+    "\n")
+```
+
+---
+
+# Key Findings
+
+- `ndiffs()` confirmed **`r ndiffs(premium_ts)` non-seasonal difference** and
+  `nsdiffs()` confirmed **`r nsdiffs(premium_ts)` seasonal difference** required,
+  consistent with the slow ACF decay observed in Lesson 7.
+- `auto.arima()` selected the model with the lowest AIC across a full grid
+  search (`stepwise = FALSE`).
+- The Ljung-Box test p-value of
+  **`r round(Box.test(residuals(model_auto), lag=24, type='Ljung-Box', fitdf=sum(arimaorder(model_auto)[c('p','q','P','Q')]))$p.value, 4)`**
+  `r ifelse(Box.test(residuals(model_auto), lag=24, type='Ljung-Box', fitdf=sum(arimaorder(model_auto)[c('p','q','P','Q')]))$p.value > 0.05, "confirms residuals are consistent with white noise — the model is adequate.", "suggests residuals retain structure — further refinement may be needed.")`
+- The fitted model is carried forward into **Lesson 9** for forecasting
+  and forecast interval construction.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `monthly_premiums.csv`.*
