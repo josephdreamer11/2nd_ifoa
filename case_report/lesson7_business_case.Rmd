@@ -1,0 +1,169 @@
+---
+title: "ACF, PACF & Decomposition of Premium Income"
+subtitle: "Time Series Structure Analysis — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(forecast)
+library(knitr)
+
+monthly_premiums <- read_csv("L5_monthly_premiums.csv") %>%
+  mutate(month = as.Date(month))
+
+premium_ts <- ts(
+  monthly_premiums$total_premium,
+  start     = c(2019, 1),
+  frequency = 12
+)
+```
+
+# Overview
+
+This report analyses the internal structure of the monthly premium income
+series built in Lesson 6. The series spans
+**`r format(min(monthly_premiums$month), '%B %Y')`** to
+**`r format(max(monthly_premiums$month), '%B %Y')`**
+(**`r length(premium_ts)`** observations, monthly frequency).
+
+We apply three diagnostic tools: ACF, PACF, and classical decomposition.
+The findings inform the ARIMA model specification in Lesson 8.
+
+---
+
+# Autocorrelation Analysis
+
+## ACF — Autocorrelation Function
+
+```{r acf-plot, echo=TRUE, fig.width=8, fig.height=4,fig.cap="Figure 1: ACF of Monthly Premium Income"}
+ggAcf(premium_ts, lag.max = 36) +
+  labs(title = "ACF — Monthly Premium Income",
+       x = "Lag (Months)") +
+  theme_minimal(base_size = 12)
+```
+
+## PACF — Partial Autocorrelation Function
+
+```{r pacf-plot, echo=TRUE, fig.width=8, fig.height=4,fig.cap="Figure 2: PACF of Monthly Premium Income"}
+ggPacf(premium_ts, lag.max = 36) +
+  labs(title = "PACF — Monthly Premium Income",
+       x = "Lag (Months)") +
+  theme_minimal(base_size = 12)
+```
+
+## Reading the Plots
+
+```{r acf-lag1, echo=TRUE}
+# Extract lag-1 autocorrelation value
+acf_vals <- acf(premium_ts, lag.max = 36, plot = FALSE)
+cat("Lag-1 autocorrelation:", round(acf_vals$acf[2], 3), "\n")
+cat("Lag-12 autocorrelation:", round(acf_vals$acf[13], 3), "\n")
+```
+
+The blue dashed lines represent the 95% confidence bounds
+(±1.96/√n). Bars exceeding these bounds indicate statistically
+significant autocorrelation at that lag.
+
+---
+
+# Classical Decomposition
+
+## Additive Decomposition
+
+```{r decompose, echo=TRUE}
+decomp <- decompose(premium_ts, type = "additive")
+```
+
+```{r decompose-plot, echo=FALSE, fig.width=8, fig.height=6,fig.cap="Figure 3: Additive Decomposition of Monthly Premium Income"}
+autoplot(decomp) +
+  labs(title = "Additive Decomposition — Monthly Premium Income") +
+  theme_minimal(base_size = 11)
+```
+
+## Seasonal Component
+
+```{r seasonal-table}
+seasonal_vals <- decomp$seasonal[1:12]
+tibble(
+  Month         = month.abb,
+  `Seasonal Effect (£)` = round(seasonal_vals, 0)
+) %>%
+  kable(caption = "Table 1: Estimated Monthly Seasonal Effects")
+```
+
+## Trend Component
+
+```{r trend-plot, echo=FALSE, fig.width=8, fig.height=3,fig.cap="Figure 4: Extracted Trend Component"}
+tibble(
+  month = monthly_premiums$month,
+  trend = as.numeric(decomp$trend)
+) %>%
+  filter(!is.na(trend)) %>%
+  ggplot(aes(x = month, y = trend)) +
+  geom_line(color = "#2c7bb6", linewidth = 0.9) +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Trend Component",
+       x = NULL, y = "Premium (£)") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+---
+
+# Implications for Modelling
+
+```{r random-component, echo=FALSE, fig.width=8, fig.height=3,fig.cap="Figure 5: Random (Residual) Component"}
+tibble(
+  month  = monthly_premiums$month,
+  random = as.numeric(decomp$random)
+) %>%
+  filter(!is.na(random)) %>%
+  ggplot(aes(x = month, y = random)) +
+  geom_line(color = "#d7191c", linewidth = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Random Component",
+       x = NULL, y = "Residual (£)") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+The random component should behave like white noise — no obvious
+pattern or trend. Remaining structure here would suggest the additive
+model is insufficient and a multiplicative decomposition or
+differencing may be required before ARIMA modelling.
+
+---
+
+# Key Findings
+
+- The **ACF** shows slow decay, consistent with a trending series.
+  Significant spikes at lags 12 and 24 confirm annual seasonality.
+- The **PACF** cuts off sharply after lag 1, suggesting an AR(1)
+  component may be sufficient once trend and seasonality are removed.
+- **Decomposition** separates the series into trend, seasonal, and
+  random components. The seasonal effect peaks in winter months
+  (November–February) and dips in mid-year.
+- The random component appears approximately centred on zero with no
+  obvious remaining pattern — the additive model is a reasonable fit.
+- These diagnostics directly inform the ARIMA order selection in
+  **Lesson 8**.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `monthly_premiums.csv`.*

@@ -1,0 +1,178 @@
+---
+title: "Time Series Objects: ts and xts"
+subtitle: "Time Series Basics — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(xts)
+library(forecast)
+library(knitr)
+
+monthly_premiums <- read_csv("L5_monthly_premiums.csv") %>%
+  mutate(month = as.Date(month))
+
+# Build ts object
+premium_ts <- ts(
+  monthly_premiums$total_premium,
+  start     = c(2019, 1),
+  frequency = 12
+)
+
+# Build xts object
+premium_xts <- xts(
+  monthly_premiums$total_premium,
+  order.by = monthly_premiums$month
+)
+```
+
+# Overview
+
+This report demonstrates the structure and practical use of `ts` and `xts`
+objects using **`r nrow(monthly_premiums)` months** of premium income data,
+running from **`r format(min(monthly_premiums$month), '%B %Y')`** to
+**`r format(max(monthly_premiums$month), '%B %Y')`**.
+
+---
+
+# The ts Object
+
+## Structure
+
+```{r ts-str, echo=TRUE}
+# Inspect the ts object
+print(premium_ts)
+```
+
+```{r ts-attributes, echo=TRUE}
+# Key attributes
+cat("Start:    ", start(premium_ts), "\n")
+cat("End:      ", end(premium_ts),   "\n")
+cat("Frequency:", frequency(premium_ts), "\n")
+cat("Length:   ", length(premium_ts), "\n")
+```
+
+## Indexing a ts Object
+
+```{r ts-index, echo=TRUE}
+# Extract a specific window
+window(premium_ts, start = c(2021, 1), end = c(2021, 12))
+```
+
+## Visualisation
+
+```{r ts-plot, echo=FALSE, fig.width=8, fig.height=4,fig.cap="Figure 1: Monthly Premium Income — ts Object"}
+autoplot(premium_ts) +
+  labs(title = "Monthly Premium Income (ts)",
+       x = NULL, y = "Total Premium (£)") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# The xts Object
+
+## Structure
+
+```{r xts-str, echo=TRUE}
+# Inspect the xts object
+head(premium_xts, 6)
+```
+
+```{r xts-periodicity, echo=TRUE}
+# Check periodicity
+periodicity(premium_xts)
+```
+
+## Indexing an xts Object
+
+```{r xts-index, echo=TRUE}
+# Index by year
+premium_xts["2021"]
+```
+
+```{r xts-range, echo=TRUE}
+# Index by date range
+premium_xts["2021-01/2021-06"]
+```
+
+## Year-End Values with endpoints()
+
+```{r xts-endpoints, echo=TRUE}
+# Extract the last value of each year
+ep <- endpoints(premium_xts, on = "years")
+premium_xts[ep]
+```
+
+## Visualisation
+
+```{r xts-plot, echo=FALSE, fig.width=8, fig.height=4,fig.cap="Figure 2: Monthly Premium Income — xts Object"}
+autoplot(premium_xts) +
+  labs(title = "Monthly Premium Income (xts)",
+       x = NULL, y = "Total Premium (£)") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Converting Between ts and xts
+
+```{r convert, echo=TRUE}
+# ts → xts
+converted_to_xts <- as.xts(premium_ts)
+
+# xts → ts
+converted_to_ts  <- as.ts(premium_xts)
+
+cat("Converted xts class:", class(converted_to_xts), "\n")
+cat("Converted ts class: ", class(converted_to_ts),  "\n")
+```
+
+---
+
+# Annual Summary Table
+
+```{r annual-summary}
+monthly_premiums %>%
+  mutate(year = lubridate::year(month)) %>%
+  group_by(Year = year) %>%
+  summarise(
+    `Months`          = n(),
+    `Min Premium (£)` = round(min(total_premium), 0),
+    `Avg Premium (£)` = round(mean(total_premium), 0),
+    `Max Premium (£)` = round(max(total_premium), 0),
+    `Total GWP (£)`   = format(round(sum(total_premium), 0), big.mark = ",") #1,234,567
+  ) %>%
+  kable(caption = "Table 1: Annual Premium Summary")
+```
+
+---
+
+# Key Findings
+
+- The `ts` object is best suited for **regular, equally-spaced** series where
+  frequency is fixed (monthly, quarterly, annual). It integrates directly with
+  `forecast`, `decompose`, and `arima` functions used in Lessons 7–9.
+- The `xts` object uses **actual calendar dates** as its index, making it more
+  flexible for irregular series and date-based subsetting.
+- Both formats can be converted with `as.xts()` and `as.ts()`, so the choice
+  of format depends on the downstream analysis required.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `monthly_premiums.csv`.*
