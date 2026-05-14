@@ -1,0 +1,200 @@
+---
+title: "Forecasting & Diagnostics: Premium Income"
+subtitle: "Time Series Forecasting — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(forecast)
+library(knitr)
+
+monthly_premiums <- read_csv("L5_monthly_premiums.csv") %>%
+  mutate(month = as.Date(month))
+
+premium_ts <- ts(
+  monthly_premiums$total_premium,
+  start     = c(2019, 1),
+  frequency = 12
+)
+
+# Train / test split: hold out last 12 months
+train_ts <- window(premium_ts, end   = c(2022, 12))
+test_ts  <- window(premium_ts, start = c(2023,  1))
+```
+
+# Overview
+
+This report produces a 12-month forward forecast from the ARIMA model
+fitted in Lesson 8, and evaluates forecast accuracy using a
+**train/test split** — holding out the final
+**`r length(test_ts)` months** of the series as unseen test data.
+
+The series spans
+**`r format(min(monthly_premiums$month), '%B %Y')`** to
+**`r format(max(monthly_premiums$month), '%B %Y')`**
+(**`r length(premium_ts)`** observations total).
+
+---
+
+# Train / Test Split
+
+```{r split-plot, echo=TRUE, fig.width=8, fig.height=4,fig.cap="Figure 1: Train/Test Split of Premium Income Series"}
+autoplot(train_ts, series = "Train") +
+  autolayer(test_ts, series = "Test") +
+  scale_color_manual(values = c("Train" = "#2c7bb6", "Test" = "#d7191c")) +
+  labs(title = "Premium Income — Train / Test Split",
+       x = NULL, y = "Total Premium (£)", color = NULL) +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Fit Model on Training Data
+
+```{r fit-train, echo=TRUE}
+model_train <- auto.arima(
+  train_ts,
+  stepwise      = FALSE,
+  approximation = FALSE
+)
+
+ord <- arimaorder(model_train)
+```
+
+Model selected on training data:
+**ARIMA(`r ord["p"]`,`r ord["d"]`,`r ord["q"]`)(`r ord["P"]`,`r ord["D"]`,`r ord["Q"]`)[12]**
+
+---
+
+# Forecast
+
+## 12-Month Ahead Forecast
+
+```{r forecast-obj, echo=TRUE}
+fc <- forecast(model_train, h = 12, level = c(80, 95))
+```
+
+```{r forecast-plot, echo=FALSE, fig.width=9, fig.height=5,fig.cap="Figure 2: 12-Month Ahead Forecast with Prediction Intervals"}
+autoplot(fc) +
+  autolayer(test_ts, series = "Actual", color = "#d7191c") +
+  labs(title = "12-Month Forecast vs Actual",
+       x = NULL, y = "Total Premium (£)") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  theme_minimal(base_size = 12)
+```
+
+## Forecast Values Table
+
+```{r forecast-table}
+fc_df <- as.data.frame(fc) %>%
+  mutate(Month = seq(as.Date("2023-01-01"),
+                     by = "month", length.out = 12),
+         Actual = as.numeric(test_ts)) %>%
+  select(Month,
+         `Point Forecast`,
+         `Lo 80`, `Hi 80`,
+         `Lo 95`, `Hi 95`,
+         Actual) %>%
+  mutate(across(where(is.numeric), ~ round(., 0)))
+
+fc_df %>%
+  kable(caption = "Table 1: Forecast vs Actual — Monthly Detail")
+```
+
+---
+
+# Forecast Accuracy
+
+## Out-of-Sample Accuracy
+
+```{r accuracy-table}
+acc <- accuracy(fc, test_ts)
+
+as.data.frame(acc) %>%
+  rownames_to_column("Set") %>%
+  mutate(across(where(is.numeric), ~ round(., 2))) %>%
+  kable(caption = "Table 2: Forecast Accuracy — Training and Test Sets")
+```
+
+## Comparison with Naïve Benchmark
+
+```{r naive-comparison, echo=TRUE}
+model_naive  <- snaive(train_ts, h = 12)
+acc_arima    <- accuracy(fc,           test_ts)
+acc_naive    <- accuracy(model_naive,  test_ts)
+```
+
+```{r benchmark-table}
+tibble(
+  Model = c("ARIMA (auto)", "Seasonal Naïve"),
+  RMSE  = round(c(acc_arima["Test set",  "RMSE"],
+                   acc_naive["Test set",  "RMSE"]), 0),
+  MAE   = round(c(acc_arima["Test set",  "MAE"],
+                   acc_naive["Test set",  "MAE"]),  0),
+  MAPE  = round(c(acc_arima["Test set",  "MAPE"],
+                   acc_naive["Test set",  "MAPE"]),  2)
+) %>%
+  kable(caption = "Table 3: ARIMA vs Seasonal Naïve — Test Set Accuracy")
+```
+
+---
+
+# Full-Series Forecast (Forward-Looking)
+
+```{r full-model}
+model_full <- auto.arima(
+  premium_ts,
+  stepwise      = FALSE,
+  approximation = FALSE
+)
+
+fc_full <- forecast(model_full, h = 12, level = c(80, 95))
+```
+
+```{r full-forecast-plot, echo=FALSE, fig.width=9, fig.height=5,fig.cap="Figure 3: Forward-Looking 12-Month Forecast from Full Series"}
+autoplot(fc_full) +
+  labs(title = "12-Month Forward Forecast — Full Series",
+       x = NULL, y = "Total Premium (£)") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Key Findings
+
+```{r kf-inline, include=FALSE}
+rmse_arima <- round(acc_arima["Test set", "RMSE"], 0)
+rmse_naive <- round(acc_naive["Test set", "RMSE"], 0)
+mape_arima <- round(acc_arima["Test set", "MAPE"], 2)
+```
+
+- The ARIMA model achieved a test-set RMSE of
+  **£`r format(rmse_arima, big.mark=",")`** and MAPE of
+  **`r mape_arima`%** on the held-out 12 months.
+- The seasonal naïve benchmark had RMSE of
+  **£`r format(rmse_naive, big.mark=",")`** —
+  `r ifelse(rmse_arima < rmse_naive, "the ARIMA model outperforms the naïve benchmark.", "the naïve benchmark is competitive — further model refinement may be warranted.")`
+- The 80% and 95% prediction intervals widen over the forecast horizon,
+  correctly reflecting increasing uncertainty over time.
+- The forward-looking forecast (Figure 3) provides the 12-month premium
+  income projection that would feed directly into a budgeting or
+  reserving exercise.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `monthly_premiums.csv`.*
