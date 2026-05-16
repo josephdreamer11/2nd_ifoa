@@ -1,0 +1,185 @@
+---
+title: "Intro to Stochastic Processes"
+subtitle: "Stochastic Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(knitr)
+
+set.seed(42)
+
+policyholders <- read_csv("L2_policyholders.csv")
+
+# Parameters from data
+n_steps  <- 60          # months of simulation
+n_paths  <- 200         # number of simulated paths
+mu       <- mean(policyholders$claim_amount[policyholders$has_claim == 1])
+sigma    <- sd(policyholders$claim_amount[policyholders$has_claim == 1])
+```
+
+# Overview
+
+This report introduces stochastic process simulation in the context of
+actuarial claim modelling. Using parameters estimated from the
+**`r nrow(policyholders)`-policyholder** portfolio, we simulate
+**`r n_paths` independent random walk paths** over **`r n_steps` months**
+to illustrate the probabilistic range of cumulative claim outcomes.
+
+Estimated monthly claim increment parameters from the portfolio:
+**mean = £`r format(round(mu, 0), big.mark=",")`**,
+**sd = £`r format(round(sigma, 0), big.mark=",")`**.
+
+---
+
+# Single Random Walk
+
+```{r single-rw, echo=TRUE}
+n_steps <- 60
+
+increments <- rnorm(n_steps, mean = mu, sd = sigma)
+rw_path    <- cumsum(increments)
+```
+
+```{r single-rw-plot, fig.width=8, fig.height=4,fig.cap="Figure 1: Single Random Walk — Cumulative Claim Amount"}
+tibble(
+  step   = 1:n_steps,
+  value  = rw_path
+) %>%
+  ggplot(aes(x = step, y = value)) +
+  geom_line(color = "#2c7bb6", linewidth = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Single Random Walk — Cumulative Claim Amount",
+       x = "Month", y = "Cumulative Amount (£)") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Multiple Paths
+
+```{r multi-paths, echo=TRUE}
+n_paths <- 200
+
+sim_matrix <- replicate(
+  n_paths,
+  cumsum(rnorm(n_steps, mean = mu, sd = sigma))
+)
+```
+
+```{r multi-paths-plot, fig.width=8, fig.height=5,fig.cap="Figure 2: 200 Simulated Random Walk Paths"}
+sim_df <- as.data.frame(sim_matrix) %>%
+  mutate(step = 1:n_steps) %>%
+  pivot_longer(-step, names_to = "path", values_to = "value")
+
+ggplot(sim_df, aes(x = step, y = value, group = path)) +
+  geom_line(alpha = 0.07, color = "#2c7bb6") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "200 Simulated Paths — Cumulative Claim Amount",
+       x = "Month", y = "Cumulative Amount (£)") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Uncertainty Quantification
+
+```{r uncertainty, echo=TRUE}
+final_values <- sim_matrix[n_steps, ]
+
+quantiles <- quantile(final_values,
+                      probs = c(0.05, 0.25, 0.50, 0.75, 0.95))
+```
+
+```{r quantile-table}
+tibble(
+  Percentile      = c("5th", "25th", "50th (Median)", "75th", "95th"),
+  `Value (£)`     = format(round(quantiles, 0), big.mark = ",")
+) %>%
+  kable(caption = "Table 1: Distribution of Cumulative Claims at Month 60")
+```
+
+```{r distribution-plot, fig.width=8, fig.height=4,fig.cap="Figure 3: Distribution of Cumulative Claim Amount at Month 60"}
+tibble(final = final_values) %>%
+  ggplot(aes(x = final)) +
+  geom_histogram(bins = 40, fill = "#2c7bb6",
+                 color = "white", alpha = 0.8) +
+  geom_vline(xintercept = quantiles["50%"],
+             color = "#d7191c", linetype = "dashed", linewidth = 0.8) +
+  geom_vline(xintercept = quantiles["5%"],
+             color = "#fdae61", linetype = "dashed", linewidth = 0.7) +
+  geom_vline(xintercept = quantiles["95%"],
+             color = "#fdae61", linetype = "dashed", linewidth = 0.7) +
+  scale_x_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Distribution of Cumulative Claims at Month 60",
+       subtitle = "Red = median, Orange = 5th/95th percentiles",
+       x = "Cumulative Claim Amount (£)", y = "Count") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Paths with Confidence Band
+
+```{r confidence-band, fig.width=8, fig.height=5,fig.cap="Figure 4: Simulated Paths with 90% Confidence Band"}
+band_df <- sim_df %>%
+  group_by(step) %>%
+  summarise(
+    median = median(value),
+    lo90   = quantile(value, 0.05),
+    hi90   = quantile(value, 0.95),
+    .groups = "drop"
+  )
+
+ggplot() +
+  geom_line(data = sim_df,
+            aes(x = step, y = value, group = path),
+            alpha = 0.05, color = "#2c7bb6") +
+  geom_ribbon(data = band_df,
+              aes(x = step, ymin = lo90, ymax = hi90),
+              fill = "#fdae61", alpha = 0.4) +
+  geom_line(data = band_df,
+            aes(x = step, y = median),
+            color = "#d7191c", linewidth = 0.9) +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Simulated Paths with 90% Confidence Band",
+       subtitle = "Red = median path, Orange band = 5th–95th percentile range",
+       x = "Month", y = "Cumulative Amount (£)") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Key Findings
+
+- A single random walk path is unpredictable — each simulation produces a
+  different outcome. This is the fundamental nature of stochastic processes.
+- Across **`r n_paths` simulated paths**, the 90% confidence band at month
+  **`r n_steps`** runs from
+  **£`r format(round(quantiles["5%"], 0), big.mark=",")`** to
+  **£`r format(round(quantiles["95%"], 0), big.mark=",")`**.
+- The median cumulative claim at month 60 is
+  **£`r format(round(quantiles["50%"], 0), big.mark=",")`**.
+- This range quantifies the **reserving uncertainty** an actuary must account
+  for when setting aside capital for future claims — a direct IFoA CS2
+  application.
+- In **Lesson 11**, we move from random walks to Markov chains, where the
+  next state depends on the current state in a structured way.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
