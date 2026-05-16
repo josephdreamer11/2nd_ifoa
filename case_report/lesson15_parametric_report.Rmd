@@ -1,0 +1,231 @@
+---
+title: "Parametric Survival Models: Exponential & Weibull"
+subtitle: "Survival Analysis — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(survival)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    time  = policy_duration_months,
+    event = if_else(policy_duration_months < 60, 1, 0)
+  )
+
+# KM for comparison
+fit_km <- survfit(Surv(time, event) ~ 1, data = policyholders)
+```
+
+# Overview
+
+This report fits **Exponential** and **Weibull** parametric survival
+models to the policyholder lapse data and compares them against the
+non-parametric Kaplan-Meier estimate from Lesson 14.
+
+Portfolio: **`r nrow(policyholders)`** policyholders,
+**`r sum(policyholders$event)`** events (lapses),
+**`r sum(1 - policyholders$event)`** censored.
+
+---
+
+# Exponential Model
+
+## Fitting
+
+```{r exp-fit, echo=TRUE}
+fit_exp <- survreg(Surv(time, event) ~ 1,
+                   data  = policyholders,
+                   dist  = "exponential")
+summary(fit_exp)
+```
+
+## Parameter Extraction
+
+```{r exp-params, echo=TRUE}
+# survreg returns log(scale); rate lambda = 1 / exp(coef)
+lambda_exp <- 1 / exp(coef(fit_exp)[1])
+
+cat("Exponential rate (λ):         ", round(lambda_exp, 5), "\n")
+cat("Mean survival time (1/λ):     ",
+    round(1 / lambda_exp, 1), "months\n")
+cat("Median survival time (-log(0.5)/λ):",
+    round(log(2) / lambda_exp, 1), "months\n")
+```
+
+## Survival Function
+
+```{r exp-surv}
+t_seq    <- seq(0, 72, by = 1)
+S_exp    <- exp(-lambda_exp * t_seq)
+exp_df   <- tibble(time = t_seq, surv = S_exp, model = "Exponential")
+```
+
+---
+
+# Weibull Model
+
+## Fitting
+
+```{r weib-fit, echo=TRUE}
+fit_weib <- survreg(Surv(time, event) ~ 1,
+                    data = policyholders,
+                    dist = "weibull")
+summary(fit_weib)
+```
+
+## Parameter Extraction
+
+```{r weib-params, echo=TRUE}
+# survreg Weibull parameterisation:
+# shape k = 1 / fit$scale
+# scale λ = exp(coef)
+k_weib      <- 1 / fit_weib$scale
+lambda_weib <- exp(coef(fit_weib)[1])
+
+cat("Weibull shape (k):  ", round(k_weib, 4), "\n")
+cat("Weibull scale (λ):  ", round(lambda_weib, 2), "months\n")
+cat("Interpretation:     ",
+    ifelse(k_weib < 1,
+           "k < 1 → decreasing hazard (early lapses dominate)",
+           ifelse(k_weib > 1,
+                  "k > 1 → increasing hazard (lapses accelerate over time)",
+                  "k = 1 → constant hazard (reduces to Exponential)")),
+    "\n")
+```
+
+## Survival Function
+
+```{r weib-surv}
+S_weib   <- exp(-(t_seq / lambda_weib)^k_weib)
+weib_df  <- tibble(time = t_seq, surv = S_weib, model = "Weibull")
+```
+
+---
+
+# Model Comparison
+
+## Survival Curves: KM vs Parametric Models
+
+```{r comparison-plot, fig.width=8, fig.height=5,fig.cap="Figure 1: KM vs Exponential vs Weibull Survival Curves"}
+km_df <- tibble(
+  time  = c(0, fit_km$time),
+  surv  = c(1, fit_km$surv),
+  model = "Kaplan-Meier"
+)
+
+bind_rows(km_df, exp_df, weib_df) %>%
+  ggplot(aes(x = time, y = surv, color = model, linetype = model)) +
+  geom_step(data = . %>% filter(model == "Kaplan-Meier"),
+            linewidth = 0.8) +
+  geom_line(data = . %>% filter(model != "Kaplan-Meier"),
+            linewidth = 0.8) +
+  scale_color_manual(values = c("Kaplan-Meier" = "#2c7bb6",
+                                 "Exponential"  = "#d7191c",
+                                 "Weibull"      = "#1a9641")) +
+  scale_linetype_manual(values = c("Kaplan-Meier" = "solid",
+                                    "Exponential"  = "dashed",
+                                    "Weibull"      = "dashed")) +
+  scale_y_continuous(limits = c(0, 1),
+                     labels = scales::percent_format()) +
+  scale_x_continuous(breaks = seq(0, 72, 12)) +
+  labs(title    = "Survival Curves: KM vs Parametric Models",
+       subtitle = "Step = Kaplan-Meier | Dashed = parametric fits",
+       x = "Months in Force", y = "Survival Probability S(t)",
+       color = "Model", linetype = "Model") +
+  theme_minimal(base_size = 12)
+```
+
+## AIC Comparison
+
+```{r aic-comparison}
+tibble(
+  Model = c("Exponential", "Weibull"),
+  `Log-Likelihood` = round(c(fit_exp$loglik[2],
+                               fit_weib$loglik[2]), 2),
+  `Parameters`     = c(1, 2),
+  AIC              = round(c(AIC(fit_exp), AIC(fit_weib)), 2)
+) %>%
+  kable(caption = "Table 1: Model Comparison — Log-Likelihood and AIC")
+```
+
+```{r aic-conclusion}
+best <- if (AIC(fit_weib) < AIC(fit_exp)) "Weibull" else "Exponential"
+```
+
+The **`r best`** model has the lower AIC and is preferred.
+
+---
+
+# Hazard Functions
+
+```{r hazard-plot, fig.width=8, fig.height=4,fig.cap="Figure 2: Fitted Hazard Functions — Exponential vs Weibull"}
+h_exp  <- rep(lambda_exp, length(t_seq))
+h_weib <- (k_weib / lambda_weib) * (t_seq / lambda_weib)^(k_weib - 1)
+
+tibble(
+  time  = rep(t_seq, 2),
+  hazard = c(h_exp, h_weib),
+  model  = rep(c("Exponential", "Weibull"), each = length(t_seq))
+) %>%
+  filter(time > 0) %>%
+  ggplot(aes(x = time, y = hazard, color = model)) +
+  geom_line(linewidth = 0.9) +
+  scale_color_manual(values = c("Exponential" = "#d7191c",
+                                 "Weibull"     = "#1a9641")) +
+  labs(title = "Hazard Function h(t) — Exponential vs Weibull",
+       x = "Months in Force", y = "Hazard Rate h(t)",
+       color = "Model") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Survival Estimates at Key Durations
+
+```{r survival-table}
+times_key <- c(12, 24, 36, 48, 60)
+
+tibble(
+  `Time (Months)` = times_key,
+  `Kaplan-Meier`  = paste0(
+    round(summary(fit_km, times = times_key)$surv * 100, 1), "%"),
+  `Exponential`   = paste0(
+    round(exp(-lambda_exp * times_key) * 100, 1), "%"),
+  `Weibull`       = paste0(
+    round(exp(-(times_key / lambda_weib)^k_weib) * 100, 1), "%")
+) %>%
+  kable(caption = "Table 2: Survival Estimates at Key Durations")
+```
+
+---
+
+# Key Findings
+
+- The **Exponential model** assumes a constant hazard rate of
+  **λ = `r round(lambda_exp, 5)`** per month — meaning the lapse
+  rate does not change with policy duration. Mean survival time:
+  **`r round(1/lambda_exp, 1)` months**.
+- The **Weibull shape parameter k = `r round(k_weib, 3)`** indicates
+  `r ifelse(k_weib < 1, "a decreasing hazard — lapses are most likely early in the policy life and become less frequent over time.", ifelse(k_weib > 1, "an increasing hazard — lapse risk grows as the policy matures.", "a constant hazard — equivalent to the Exponential model."))`
+- The **`r best`** model is preferred by AIC
+  (ΔAIC = `r round(abs(AIC(fit_exp) - AIC(fit_weib)), 2)`).
+
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
