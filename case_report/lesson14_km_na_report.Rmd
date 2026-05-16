@@ -1,0 +1,205 @@
+---
+title: "Kaplan-Meier & Nelson-Aalen Estimators"
+subtitle: "Survival Analysis — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(survival)
+library(survminer)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    time  = policy_duration_months,
+    event = if_else(policy_duration_months < 60, 1, 0)
+  )
+```
+
+# Overview
+
+This report estimates and compares survival curves across policy types
+using the **Kaplan-Meier** and **Nelson-Aalen** estimators, and formally
+tests whether observed differences are statistically significant using
+the **log-rank test**.
+
+Portfolio: **`r nrow(policyholders)`** policyholders,
+**`r sum(policyholders$event)`** events (lapses),
+**`r sum(1 - policyholders$event)`** censored.
+
+---
+
+# Kaplan-Meier Estimator
+
+## Overall KM Curve
+
+```{r km-fit, echo=TRUE}
+fit_km <- survfit(Surv(time, event) ~ 1, data = policyholders)
+```
+
+```{r km-summary-table}
+km_summary <- summary(fit_km, times = c(6, 12, 24, 36, 48, 60))
+
+tibble(
+  `Time (Months)`    = km_summary$time,
+  `At Risk`          = km_summary$n.risk,
+  `Events`           = km_summary$n.event,
+  `S(t)`             = round(km_summary$surv,  3),
+  `Lower 95% CI`     = round(km_summary$lower, 3),
+  `Upper 95% CI`     = round(km_summary$upper, 3)
+) %>%
+  kable(caption = "Table 1: Kaplan-Meier Survival Estimates at Key Durations")
+```
+
+```{r km-overall-plot, fig.width=8, fig.height=5,fig.cap="Figure 1: Kaplan-Meier Curve — Overall Portfolio"}
+ggsurvplot(
+  fit_km,
+  data          = policyholders,
+  conf.int      = TRUE,
+  risk.table    = TRUE,
+  palette       = "#2c7bb6",
+  xlab          = "Months in Force",
+  ylab          = "Survival Probability S(t)",
+  title         = "Kaplan-Meier — Overall Portfolio",
+  ggtheme       = theme_minimal(base_size = 12),
+  risk.table.height = 0.25
+)
+```
+
+## KM by Policy Type
+
+```{r km-by-type, echo=TRUE}
+fit_type <- survfit(Surv(time, event) ~ policy_type,
+                    data = policyholders)
+```
+
+```{r km-type-plot, fig.width=8, fig.height=6,fig.cap="Figure 2: Kaplan-Meier Curves by Policy Type"}
+ggsurvplot(
+  fit_type,
+  data          = policyholders,
+  conf.int      = TRUE,
+  risk.table    = TRUE,
+  pval          = TRUE,
+  palette       = "Set1",
+  legend.title  = "Policy Type",
+  xlab          = "Months in Force",
+  ylab          = "Survival Probability S(t)",
+  title         = "Kaplan-Meier by Policy Type",
+  ggtheme       = theme_minimal(base_size = 11),
+  risk.table.height = 0.28
+)
+```
+
+---
+
+# Nelson-Aalen Estimator
+
+```{r na-fit, echo=TRUE}
+fit_na <- survfit(Surv(time, event) ~ 1,
+                  data = policyholders,
+                  type = "fh")   # Fleming-Harrington = Nelson-Aalen
+
+na_df <- tibble(
+  time  = fit_na$time,
+  cumhaz = -log(fit_na$surv)    # H(t) = -log(S(t))
+)
+```
+
+```{r na-km-compare-plot, fig.width=8,fig.height=4,fig.cap="Figure 3: Cumulative Hazard — Nelson-Aalen vs KM-derived"}
+km_df <- tibble(
+  time   = fit_km$time,
+  cumhaz = -log(fit_km$surv)
+)
+
+bind_rows(
+  na_df %>% mutate(method = "Nelson-Aalen"),
+  km_df %>% mutate(method = "KM-derived H(t) = -log(S(t))")
+) %>%
+  ggplot(aes(x = time, y = cumhaz, color = method)) +
+  geom_step(linewidth = 0.8) +
+  scale_color_manual(values = c("Nelson-Aalen"           = "#d7191c",
+                                 "KM-derived H(t) = -log(S(t))" = "#2c7bb6")) +
+  labs(title  = "Cumulative Hazard Function H(t)",
+       x = "Months in Force", y = "Cumulative Hazard H(t)",
+       color = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Log-Rank Test
+
+```{r logrank, echo=TRUE}
+lr_test <- survdiff(Surv(time, event) ~ policy_type,
+                    data = policyholders)
+lr_test
+```
+
+```{r logrank-result}
+p_val <- 1 - pchisq(lr_test$chisq, df = length(lr_test$n) - 1)
+
+tibble(
+  `Chi-squared statistic` = round(lr_test$chisq, 3),
+  `Degrees of freedom`    = length(lr_test$n) - 1,
+  `p-value`               = round(p_val, 4),
+  `Conclusion`            = ifelse(
+    p_val < 0.05,
+    "Significant difference across policy types (p < 0.05)",
+    "No significant difference across policy types (p ≥ 0.05)"
+  )
+) %>%
+  kable(caption = "Table 2: Log-Rank Test Results")
+```
+
+---
+
+# Observed vs Expected Events
+
+```{r obs-exp}
+tibble(
+  `Policy Type` = names(lr_test$n),
+  `N`           = lr_test$n,
+  `Observed`    = lr_test$obs,
+  `Expected`    = round(lr_test$exp, 1),
+  `(O-E)²/E`   = round((lr_test$obs - lr_test$exp)^2 / lr_test$exp, 3)
+) %>%
+  kable(caption = "Table 3: Observed vs Expected Events by Policy Type")
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+p_val_fmt <- round(p_val, 4)
+km_12 <- round(summary(fit_km, times = 12)$surv * 100, 1)
+km_24 <- round(summary(fit_km, times = 24)$surv * 100, 1)
+```
+
+- The overall **12-month survival rate** is **`r km_12`%** and the
+  **24-month survival rate** is **`r km_24`%** — these are the
+  portfolio-level retention rates at key pricing durations.
+- The **log-rank test** yields p =
+  **`r p_val_fmt`** —
+  `r ifelse(p_val < 0.05, "survival curves differ significantly across policy types, justifying product-level lapse assumptions in pricing models.", "no statistically significant difference across policy types is detected at the 5% level.")`
+- The **Nelson-Aalen** and KM-derived cumulative hazard estimates track
+  closely — as expected for large samples. Nelson-Aalen is preferred
+  when estimating the hazard function itself; KM is preferred for
+  the survival probability S(t).
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
