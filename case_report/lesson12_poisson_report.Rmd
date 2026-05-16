@@ -1,0 +1,238 @@
+---
+title: "Poisson & Compound Poisson Simulation"
+subtitle: "Stochastic Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(knitr)
+
+set.seed(42)
+
+policyholders <- read_csv("L2_policyholders.csv")
+
+# Estimate lambda: average monthly claim count from portfolio
+# Portfolio spans ~4 years (48 months) across 1000 policyholders
+total_claims <- sum(policyholders$has_claim)
+n_months     <- 48
+lambda       <- total_claims / n_months
+
+# Estimate severity: lognormal parameters from observed claim amounts
+claims_only  <- policyholders$claim_amount[policyholders$has_claim == 1]
+mu_sev       <- mean(log(claims_only))
+sigma_sev    <- sd(log(claims_only))
+```
+
+# Overview
+
+This report simulates claim arrivals and aggregate losses using **Poisson**
+and **Compound Poisson** processes, calibrated from the
+**`r nrow(policyholders)`-policyholder** portfolio.
+
+Estimated parameters from portfolio data:
+
+- **Claim frequency** (λ): **`r round(lambda, 2)` claims per month**
+  (`r total_claims` total claims over `r n_months` months)
+- **Claim severity**: lognormal with
+  μ = `r round(mu_sev, 3)`, σ = `r round(sigma_sev, 3)`
+  (mean severity = **£`r format(round(mean(claims_only), 0), big.mark=",")`**)
+
+---
+
+# Poisson Process: Claim Arrivals
+
+## Single Month Simulation
+
+```{r single-month, echo=TRUE}
+lambda   <- total_claims / n_months
+n_claims <- rpois(1, lambda = lambda)
+cat("Simulated claims this month:", n_claims, "\n")
+```
+
+## Monthly Claim Counts Over 36 Months
+
+```{r monthly-counts, echo=TRUE}
+n_months_sim <- 36
+monthly_claims <- rpois(n_months_sim, lambda = lambda)
+cumulative_claims <- cumsum(monthly_claims)
+```
+
+```{r poisson-plot, fig.width=8, fig.height=4,fig.cap="Figure 1: Simulated Monthly and Cumulative Claim Counts"}
+tibble(
+  month      = 1:n_months_sim,
+  monthly    = monthly_claims,
+  cumulative = cumulative_claims
+) %>%
+  pivot_longer(-month, names_to = "type", values_to = "count") %>%
+  mutate(type = recode(type,
+                       monthly    = "Monthly Count",
+                       cumulative = "Cumulative Count")) %>%
+  ggplot(aes(x = month, y = count, color = type)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 1.5, alpha = 0.6) +
+  scale_color_manual(values = c("Monthly Count"    = "#2c7bb6",
+                                 "Cumulative Count" = "#d7191c")) +
+  labs(title  = "Simulated Claim Counts Over 36 Months",
+       x      = "Month", y = "Claim Count", color = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+## Poisson Distribution Check
+
+```{r poisson-dist, fig.width=7, fig.height=3.5,fig.cap="Figure 2: Distribution of Monthly Claim Counts vs Theoretical Poisson"}
+x_vals <- min(monthly_claims):max(monthly_claims)
+
+theoretical <- tibble(
+  x     = x_vals,
+  count = dpois(x_vals, lambda) * n_months_sim
+)
+
+tibble(count = monthly_claims) %>%
+  ggplot(aes(x = count)) +
+  geom_bar(fill = "#2c7bb6", alpha = 0.8) +
+  geom_point(data = theoretical,
+             aes(x = x, y = count),
+             color = "#d7191c", size = 3) +
+  labs(title    = "Monthly Claim Counts vs Theoretical Poisson(λ)",
+       subtitle = "Bars = simulated, Red points = theoretical",
+       x = "Claims per Month", y = "Frequency") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Compound Poisson: Aggregate Losses
+
+## Single Month Aggregate Loss
+
+```{r compound-single, echo=TRUE}
+# Step 1: draw number of claims
+n  <- rpois(1, lambda = lambda)
+
+# Step 2: draw severities for each claim
+severities <- rlnorm(n, meanlog = mu_sev, sdlog = sigma_sev)
+
+# Step 3: aggregate
+S <- sum(severities)
+cat("Claims this month:", n, "\n")
+cat("Aggregate loss:   £", format(round(S, 0), big.mark = ","), "\n")
+```
+
+## 36-Month Aggregate Loss Simulation
+
+```{r compound-monthly, echo=TRUE}
+aggregate_losses <- sapply(1:n_months_sim, function(t) {
+  n <- rpois(1, lambda = lambda)
+  sum(rlnorm(n, meanlog = mu_sev, sdlog = sigma_sev))
+})
+
+cumulative_losses <- cumsum(aggregate_losses)
+```
+
+```{r compound-plot, fig.width=8, fig.height=4,fig.cap="Figure 3: Simulated Monthly and Cumulative Aggregate Losses"}
+tibble(
+  month      = 1:n_months_sim,
+  monthly    = aggregate_losses,
+  cumulative = cumulative_losses
+) %>%
+  pivot_longer(-month, names_to = "type", values_to = "loss") %>%
+  mutate(type = recode(type,
+                       monthly    = "Monthly Loss",
+                       cumulative = "Cumulative Loss")) %>%
+  ggplot(aes(x = month, y = loss, color = type)) +
+  geom_line(linewidth = 0.9) +
+  scale_color_manual(values = c("Monthly Loss"    = "#2c7bb6",
+                                 "Cumulative Loss" = "#d7191c")) +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Simulated Aggregate Losses Over 36 Months",
+       x = "Month", y = "Loss Amount (£)", color = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Monte Carlo: Distribution of Annual Aggregate Loss
+
+```{r monte-carlo, echo=TRUE}
+n_sims       <- 5000
+annual_losses <- replicate(n_sims, {
+  monthly <- sapply(1:12, function(t) {
+    n <- rpois(1, lambda = lambda)
+    sum(rlnorm(n, meanlog = mu_sev, sdlog = sigma_sev))
+  })
+  sum(monthly)
+})
+```
+
+```{r mc-dist-plot, fig.width=8, fig.height=4,fig.cap="Figure 4: Distribution of Annual Aggregate Loss (5,000 Simulations)"}
+q95 <- quantile(annual_losses, 0.95)
+q99 <- quantile(annual_losses, 0.99)
+
+tibble(loss = annual_losses) %>%
+  ggplot(aes(x = loss)) +
+  geom_histogram(bins = 60, fill = "#2c7bb6",
+                 color = "white", alpha = 0.8) +
+  geom_vline(xintercept = q95, color = "#fdae61",
+             linetype = "dashed", linewidth = 0.8) +
+  geom_vline(xintercept = q99, color = "#d7191c",
+             linetype = "dashed", linewidth = 0.8) +
+  scale_x_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title    = "Distribution of Annual Aggregate Loss",
+       subtitle = "Orange = 95th percentile | Red = 99th percentile",
+       x = "Annual Aggregate Loss (£)", y = "Count") +
+  theme_minimal(base_size = 12)
+```
+
+```{r mc-table}
+tibble(
+  Statistic       = c("Mean", "Std Dev", "50th (Median)",
+                       "95th Percentile", "99th Percentile",
+                       "99.5th Percentile"),
+  `Value (£)`     = format(
+    round(c(mean(annual_losses),
+            sd(annual_losses),
+            quantile(annual_losses, 0.50),
+            quantile(annual_losses, 0.95),
+            quantile(annual_losses, 0.99),
+            quantile(annual_losses, 0.995)), 0),
+    big.mark = ",")
+) %>%
+  kable(caption = "Table 1: Annual Aggregate Loss — Summary Statistics")
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+mean_annual  <- round(mean(annual_losses), 0)
+p95_annual   <- round(quantile(annual_losses, 0.95), 0)
+p995_annual  <- round(quantile(annual_losses, 0.995), 0)
+```
+
+- The expected annual aggregate loss is
+  **£`r format(mean_annual, big.mark=",")`**, consistent with
+  λ × E[severity] × 12 months.
+- The **95th percentile** of annual losses is
+  **£`r format(p95_annual, big.mark=",")`** — the typical reserve
+  buffer target under a 1-in-20 stress.
+- The **99.5th percentile** is
+  **£`r format(p995_annual, big.mark=",")`** — the Solvency Capital Requirement.
+
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
