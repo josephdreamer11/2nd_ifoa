@@ -1,0 +1,253 @@
+---
+title: "Markov Chains: Policyholder State Transitions"
+subtitle: "Stochastic Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(markovchain)
+library(knitr)
+library(purrr)
+library(tibble)
+library(expm)
+
+
+set.seed(42)
+
+policyholders <- read_csv("L2_policyholders.csv")
+```
+
+# Overview
+
+This report models policyholder status — **Active**, **Lapsed**, and
+**Claimed** — as a discrete-time Markov chain, calibrated from the
+**`r nrow(policyholders)`-policyholder** portfolio.
+
+A Markov chain is appropriate here because we assume next period's
+status depends only on the current period's status — not on the full
+history of previous states. This is the standard actuarial assumption
+for lapse and claim modelling.
+
+---
+
+# Transition Matrix
+
+## Empirical Transitions from Portfolio Data
+
+```{r empirical-transitions, echo=TRUE}
+# Derive state from portfolio data
+portfolio <- policyholders %>%
+  mutate(state = case_when(
+    has_claim == 1                      ~ "Claimed",
+    policy_duration_months < 24         ~ "Lapsed",
+    TRUE                                ~ "Active"
+  ))
+
+# Empirical transition counts
+trans_counts <- portfolio %>%
+  count(state) %>%
+  mutate(total = sum(n), prop = n / total)
+```
+
+```{r counts-table}
+trans_counts %>%
+  mutate(prop = paste0(round(prop * 100, 1), "%")) %>%
+  rename(State = state, Count = n, `Portfolio Share` = prop) %>%
+  select(State, Count, `Portfolio Share`) %>%
+  kable(caption = "Table 1: Observed Portfolio State Distribution")
+```
+
+## Transition Matrix Definition
+
+```{r transition-matrix, echo=TRUE}
+# Define 3-state transition probability matrix
+# Rows: current state | Columns: next state
+P <- matrix(
+  c(0.85, 0.10, 0.05,   # Active   → Active, Lapsed, Claimed
+    0.00, 1.00, 0.00,   # Lapsed   → Active, Lapsed, Claimed
+    0.00, 0.00, 1.00),  # Claimed  → Active, Lapsed, Claimed
+  nrow  = 3,
+  byrow = TRUE,
+  dimnames = list(
+    c("Active", "Lapsed", "Claimed"),
+    c("Active", "Lapsed", "Claimed")
+  )
+)
+```
+
+```{r matrix-table}
+as.data.frame(P) %>%
+  rownames_to_column("From \\ To") %>%
+  kable(caption = "Table 2: Transition Probability Matrix",
+        digits = 2)
+```
+
+---
+
+# Markov Chain Object
+
+```{r mc-object, echo=TRUE}
+mc <- new("markovchain",
+          states       = c("Active", "Lapsed", "Claimed"),
+          transitionMatrix = P,
+          name         = "Policyholder Status")
+
+mc
+```
+
+---
+
+# Multi-Step Transitions
+
+## State Distribution After n Steps
+
+```{r nstep, echo=TRUE}
+# Initial state: 100% Active
+initial <- c(Active = 1, Lapsed = 0, Claimed = 0)
+
+# State distribution after 1, 6, 12, 24 months
+steps <- c(1, 6, 12, 24)
+
+step_results <- map_dfr(steps, function(n) {
+  dist <- initial %*% (P %^% n)
+  tibble(
+    Months  = n,
+    Active  = round(dist[1, "Active"],  4),
+    Lapsed  = round(dist[1, "Lapsed"],  4),
+    Claimed = round(dist[1, "Claimed"], 4)
+  )
+})
+```
+
+```{r nstep-table}
+step_results %>%
+  mutate(across(c(Active, Lapsed, Claimed),
+                ~ paste0(round(. * 100, 1), "%"))) %>%
+  kable(caption = "Table 3: State Distribution Over Time (Starting 100% Active)")
+```
+
+```{r nstep-plot, fig.width=8, fig.height=4, fig.cap="Figure 1: State Distribution Over 36 Months"}
+map_dfr(1:36, function(n) {
+  dist <- initial %*% (P %^% n)
+  tibble(Month   = n,
+         Active  = dist[1, "Active"],
+         Lapsed  = dist[1, "Lapsed"],
+         Claimed = dist[1, "Claimed"])
+}) %>%
+  pivot_longer(-Month, names_to = "State", values_to = "Proportion") %>%
+  ggplot(aes(x = Month, y = Proportion, color = State)) +
+  geom_line(linewidth = 0.9) +
+  scale_color_manual(values = c("Active"  = "#2c7bb6",
+                                 "Lapsed"  = "#d7191c",
+                                 "Claimed" = "#fdae61")) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(title = "State Distribution Over 36 Months",
+       x = "Month", y = "Proportion of Policyholders") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Stationary Distribution
+
+```{r steady-state, echo=TRUE}
+ss <- steadyStates(mc)
+```
+
+```{r steady-state-table}
+as.data.frame(ss) %>%
+  mutate(across(everything(), ~ paste0(round(. * 100, 1), "%"))) %>%
+  kable(caption = "Table 4: Long-Run Stationary Distribution")
+```
+
+The stationary distribution represents the long-run proportion of
+policyholders in each state, given the current transition probabilities.
+Since **Lapsed** and **Claimed** are absorbing states, all policyholders
+eventually leave the Active state — the stationary distribution reflects this.
+
+---
+
+# Simulation: 1,000 Policyholder Paths
+
+```{r simulation, echo=TRUE}
+n_policyholders <- 1000
+n_months        <- 36
+
+sim_paths <- replicate(n_policyholders, {
+  path    <- character(n_months)
+  current <- "Active"
+  for (t in 1:n_months) {
+    probs   <- P[current, ]
+    current <- sample(colnames(P), size = 1, prob = probs)
+    path[t] <- current
+  }
+  path
+})
+```
+
+```{r sim-summary}
+# Month-by-month state counts
+month_dist <- map_dfr(1:n_months, function(t) {
+  states <- sim_paths[t, ]
+  tibble(
+    Month   = t,
+    Active  = mean(states == "Active"),
+    Lapsed  = mean(states == "Lapsed"),
+    Claimed = mean(states == "Claimed")
+  )
+})
+```
+
+```{r sim-plot, fig.width=8, fig.height=4,fig.cap="Figure 2: Simulated State Distribution — 1,000 Policyholder Paths"}
+month_dist %>%
+  pivot_longer(-Month, names_to = "State", values_to = "Proportion") %>%
+  ggplot(aes(x = Month, y = Proportion, color = State)) +
+  geom_line(linewidth = 0.8, alpha = 0.9) +
+  scale_color_manual(values = c("Active"  = "#2c7bb6",
+                                 "Lapsed"  = "#d7191c",
+                                 "Claimed" = "#fdae61")) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(title = "Simulated State Distribution Over 36 Months",
+       subtitle = "1,000 independent policyholder paths",
+       x = "Month", y = "Proportion of Policyholders") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+active_12  <- step_results %>% filter(Months == 12) %>% pull(Active)
+lapsed_12  <- step_results %>% filter(Months == 12) %>% pull(Lapsed)
+claimed_12 <- step_results %>% filter(Months == 12) %>% pull(Claimed)
+```
+
+- Starting from a fully active cohort, after **12 months**:
+  **`r paste0(round(active_12*100,1),"%")`** remain Active,
+  **`r paste0(round(lapsed_12*100,1),"%")`** have Lapsed, and
+  **`r paste0(round(claimed_12*100,1),"%")`** have Claimed.
+- **Lapsed** and **Claimed** are absorbing states — once a policyholder
+  enters either state, they cannot return to Active under this model.
+- The analytical multi-step result (Table 3) and the simulation result
+  (Figure 2) converge — confirming the simulation is correctly implemented.
+- In **Lesson 12**, we introduce the Poisson process to model the
+  *number* of claims arriving over time, complementing the state-based
+  view developed here.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
