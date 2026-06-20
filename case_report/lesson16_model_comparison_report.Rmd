@@ -1,0 +1,264 @@
+---
+title: "Survival Model Comparison & Reporting"
+subtitle: "Survival Analysis — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(survival)
+library(broom)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    time  = policy_duration_months,
+    event = if_else(policy_duration_months < 60, 1, 0),
+    age_band = cut(age,
+                   breaks = c(0, 35, 50, 65, 100),
+                   labels = c("Under 35", "35-50", "50-65", "Over 65"))
+  )
+```
+
+# Overview
+
+This report compares a family of parametric survival models — with and
+without covariates — and produces a formal model selection summary
+suitable for actuarial documentation.
+
+Portfolio: **`r nrow(policyholders)`** policyholders,
+**`r sum(policyholders$event)`** events,
+**`r sum(1 - policyholders$event)`** censored.
+
+Candidate models combine two distributions (Exponential, Weibull)
+with two specifications (intercept-only, covariate-adjusted).
+
+---
+
+# Fit Candidate Models
+
+```{r fit-models, echo=TRUE}
+models <- list(
+  exp_null    = survreg(Surv(time, event) ~ 1,
+                        data = policyholders, dist = "exponential"),
+  weib_null   = survreg(Surv(time, event) ~ 1,
+                        data = policyholders, dist = "weibull"),
+  exp_cov     = survreg(Surv(time, event) ~ policy_type + age_band,
+                        data = policyholders, dist = "exponential"),
+  weib_cov    = survreg(Surv(time, event) ~ policy_type + age_band,
+                        data = policyholders, dist = "weibull")
+)
+```
+
+---
+
+# Model Comparison Table
+
+```{r comparison-table, echo=TRUE}
+comparison <- map_dfr(names(models), function(nm) {
+  m  <- models[[nm]]
+  gl <- glance(m)
+  tibble(
+    Model        = nm,
+    Distribution = m$dist,
+    `Parameters` = length(coef(m)) + 1,
+    `Log-Lik`    = round(as.numeric(logLik(m)), 1),
+    AIC          = round(AIC(m), 1),
+    BIC          = round(BIC(m), 1)
+  )
+}) %>%
+  arrange(AIC) %>%
+  mutate(`ΔAIC` = round(AIC - min(AIC), 1))
+```
+
+```{r comparison-kable}
+comparison %>%
+  kable(caption = "Table 1: Candidate Model Comparison (sorted by AIC)")
+```
+
+```{r best-model}
+best_name  <- comparison$Model[1]
+best_model <- models[[best_name]]
+
+# Best covariate-adjusted model — used specifically to illustrate how
+# policy type and age band affect lapse risk. This may differ from the
+# globally AIC-best model above, since AIC penalises the extra
+# covariate parameters and can favour the simpler intercept-only model
+# even when the covariate effects are informative for segmentation.
+cov_comparison <- comparison %>% filter(Model %in% c("exp_cov", "weib_cov"))
+cov_name       <- cov_comparison$Model[1]
+cov_model      <- models[[cov_name]]
+
+uses_cov_model <- !grepl("null", best_name)
+delta_cov_vs_best <- round(cov_comparison$AIC[1] - comparison$AIC[1], 1)
+
+# Pre-build the explanatory sentence here (instead of inline) so the
+# narrative text below stays short and readable.
+model_note <- if (!uses_cov_model) {
+  paste0("This is an intercept-only model — it does not include ",
+         "`policy_type` or `age_band`, so it cannot, by itself, show ",
+         "how lapse risk differs across segments. For that purpose, ",
+         "the remainder of this report uses the best-fitting ",
+         "**covariate-adjusted** model, **", cov_name, "** (ΔAIC = ",
+         delta_cov_vs_best, " versus the global best) — chosen ",
+         "specifically to illustrate covariate effects, which is the ",
+         "focus of this lesson.")
+} else {
+  paste0("It already includes `policy_type` and `age_band`, so it is ",
+         "used directly for the covariate analysis below.")
+}
+```
+
+The model preferred overall by AIC is **`r best_name`**
+(`r best_model$dist` distribution). `r model_note`
+
+---
+
+# Best Model: Coefficient Summary
+
+```{r tidy-coefs, echo=TRUE}
+tidy(cov_model) %>%
+  mutate(across(where(is.numeric), ~ round(., 4))) %>%
+  kable(caption = paste0("Table 2: Coefficient Estimates — ",
+                         cov_name, " (Covariate Model)"))
+```
+
+## Interpreting Covariate Effects
+
+```{r hazard-ratios}
+# exp(-coef/scale) gives hazard ratios for survreg AFT models.
+# This formula is valid for both Weibull and Exponential fits, since
+# Exponential is the special case of Weibull with scale = 1.
+# We use cov_model (not best_model) here, because hazard ratios are
+# only meaningful for a model that actually includes covariates.
+coefs <- coef(cov_model)[-1]   # exclude intercept
+scale <- cov_model$scale
+hr    <- exp(-coefs / scale)
+
+tibble(
+  Covariate      = names(coefs),
+  `Coefficient`  = round(coefs, 4),
+  `Hazard Ratio` = round(hr, 3),
+  Effect         = ifelse(hr > 1,
+                          "Higher lapse risk",
+                          "Lower lapse risk")
+) %>%
+  kable(caption = paste0("Table 3: Hazard Ratios — Covariate Effects (",
+                         cov_model$dist, " model)"))
+```
+
+---
+
+# Predicted Survival by Policy Type
+
+```{r predicted-survival, fig.width=8, fig.height=5, fig.cap="Figure 1: Predicted Survival Curves by Policy Type (Covariate Model)"}
+t_seq <- seq(0, 72, by = 1)
+
+newdata <- expand_grid(
+  policy_type = unique(policyholders$policy_type),
+  age_band    = "35-50"
+) %>%
+  mutate(
+    # age_band must carry the SAME factor levels as the training data,
+    # otherwise predict() cannot match the fitted coefficients.
+    age_band = factor(age_band, levels = levels(policyholders$age_band))
+  )
+
+pred_df <- map_dfr(1:nrow(newdata), function(i) {
+  # Predicted quantiles → survival function
+  # predict(..., type="quantile") always returns a matrix, even when
+  # p has length > 1 with newdata having 1 row — flatten with as.numeric()
+  p_seq <- seq(0.01, 0.99, by = 0.01)
+  q     <- as.numeric(predict(cov_model,
+                              newdata = newdata[i, ],
+                              type    = "quantile",
+                              p       = p_seq))
+  tibble(
+    policy_type = newdata$policy_type[i],
+    time        = q,
+    surv        = 1 - p_seq
+  )
+})
+
+ggplot(pred_df, aes(x = time, y = surv, color = policy_type)) +
+  geom_line(linewidth = 0.9) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_continuous(limits = c(0, 1),
+                     labels = scales::percent_format()) +
+  scale_x_continuous(limits = c(0, 72), breaks = seq(0, 72, 12)) +
+  labs(title    = "Predicted Survival by Policy Type",
+       subtitle = paste0("Covariate model: ", cov_name,
+                         " (age band 35-50)"),
+       x = "Months in Force", y = "Survival Probability S(t)",
+       color = "Policy Type") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Predicted Median Survival Time
+
+```{r median-survival-table}
+median_pred <- as.numeric(predict(cov_model,
+                                  newdata = newdata,
+                                  type    = "quantile",
+                                  p       = 0.5))
+
+newdata %>%
+  mutate(`Median Survival (Months)` = round(median_pred, 1)) %>%
+  select(`Policy Type` = policy_type,
+         `Age Band` = age_band,
+         `Median Survival (Months)`) %>%
+  kable(caption = paste0("Table 4: Predicted Median Survival Time by Policy Type (",
+                         cov_name, ")"))
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+# delta_cov_vs_best was already computed in the best-model chunk above;
+# just build the explanatory sentence here for readability in the bullet.
+aic_fit_note <- if (!uses_cov_model) {
+  paste0("Since this is the intercept-only model, AIC indicates that ",
+         "`policy_type` and `age_band` do not materially improve the ",
+         "*overall* fit once the extra parameters are penalised.")
+} else {
+  paste0("This model already includes the covariates, so no separate ",
+         "covariate model was needed for the analysis below.")
+}
+```
+
+- Across all four candidate models, **`r best_name`**
+  (`r best_model$dist` distribution) achieves the lowest AIC overall.
+  `r aic_fit_note`
+- For segmentation purposes, this report uses the best-fitting
+  **covariate-adjusted** model, **`r cov_name`**
+  (ΔAIC = **`r delta_cov_vs_best`** versus the global best).
+  Even when a simpler model wins narrowly on AIC, the covariate model
+  remains useful for illustrating *relative* differences in lapse risk
+  across segments — which is what a pricing committee typically needs.
+- The hazard ratios in Table 3 quantify each covariate's effect:
+  values above 1 indicate higher lapse risk relative to the baseline
+  category, values below 1 indicate lower risk.
+- This completes **Part V — Survival Analysis**. The toolkit —
+  censoring (L13), Kaplan-Meier/Nelson-Aalen (L14), parametric models
+  (L15), and model comparison (L16) — transfers directly to
+  **Part VI — Churn & Retention Modelling**, which begins in Lesson 17.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
