@@ -1,0 +1,193 @@
+---
+title: "Retention Concepts & Churn Data Structures"
+subtitle: "Churn & Retention Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    policy_start_date = as.Date(policy_start_date),
+    cohort_year       = year(policy_start_date),
+    churned           = if_else(policy_duration_months < 36, 1, 0)
+  )
+```
+
+# Overview
+
+This report introduces the core data structures and metrics used in churn
+and retention analysis, using the **`r nrow(policyholders)`-policyholder**
+portfolio.
+
+Two perspectives are demonstrated: the **snapshot view** (one row per
+customer, current status) and the **cohort view** (customers grouped by
+acquisition period, tracked over tenure).
+
+Overall churn rate (duration < 36 months):
+**`r paste0(round(mean(policyholders$churned) * 100, 1), "%")`**.
+
+---
+
+# Snapshot Data Structure
+
+## One Row Per Customer
+
+```{r snapshot, echo=TRUE}
+snapshot <- policyholders %>%
+  transmute(
+    policyholder_id,
+    policy_type,
+    cohort_year,
+    tenure_months = policy_duration_months,
+    status        = if_else(churned == 1, "Churned", "Active")
+  )
+```
+
+```{r snapshot-table}
+snapshot %>%
+  head(8) %>%
+  kable(caption = "Table 1: Snapshot Data — One Row Per Customer")
+```
+
+## Churn Rate by Segment
+
+```{r churn-segment}
+snapshot %>%
+  group_by(policy_type) %>%
+  summarise(
+    Customers   = n(),
+    Churned     = sum(status == "Churned"),
+    `Churn Rate` = paste0(round(mean(status == "Churned") * 100, 1), "%"),
+    `Retention Rate` = paste0(round(mean(status == "Active") * 100, 1), "%")
+  ) %>%
+  kable(caption = "Table 2: Churn & Retention Rate by Policy Type")
+```
+
+---
+
+# Cohort Data Structure
+
+## Cohort Sizes by Acquisition Year
+
+```{r cohort-sizes}
+policyholders %>%
+  count(cohort_year, name = "cohort_size") %>%
+  kable(caption = "Table 3: Cohort Size by Acquisition Year")
+```
+
+## Retention Matrix
+
+```{r retention-matrix, echo=TRUE}
+# For each cohort, compute % still active at tenure milestones
+milestones <- c(12, 24, 36, 48)
+
+retention_matrix <- policyholders %>%
+  group_by(cohort_year) %>%
+  summarise(
+    cohort_size = n(),
+    `12m` = mean(policy_duration_months >= 12),
+    `24m` = mean(policy_duration_months >= 24),
+    `36m` = mean(policy_duration_months >= 36),
+    `48m` = mean(policy_duration_months >= 48),
+    .groups = "drop"
+  )
+```
+
+```{r retention-matrix-table}
+retention_matrix %>%
+  mutate(across(ends_with("m"),
+                ~ paste0(round(. * 100, 1), "%"))) %>%
+  rename(`Cohort Year` = cohort_year,
+         `Cohort Size`  = cohort_size) %>%
+  kable(caption = "Table 4: Retention Matrix — % Active by Tenure Milestone")
+```
+
+---
+
+# Retention Curve Visualisation
+
+```{r retention-curve, fig.width=8, fig.height=5, fig.cap="Figure 1: Retention Curves by Acquisition Cohort"}
+retention_long <- retention_matrix %>%
+  select(cohort_year, `12m`, `24m`, `36m`, `48m`) %>%
+  pivot_longer(-cohort_year,
+               names_to  = "tenure",
+               values_to = "retention") %>%
+  mutate(tenure_months = as.numeric(str_remove(tenure, "m")))
+
+# Add starting point (0 months = 100%)
+start_points <- retention_matrix %>%
+  transmute(cohort_year, tenure_months = 0, retention = 1)
+
+bind_rows(start_points,
+          retention_long %>% select(cohort_year, tenure_months, retention)) %>%
+  ggplot(aes(x = tenure_months, y = retention,
+             color = factor(cohort_year))) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_color_brewer(palette = "Set2") +
+  scale_y_continuous(limits = c(0, 1),
+                     labels = scales::percent_format()) +
+  scale_x_continuous(breaks = seq(0, 48, 12)) +
+  labs(title  = "Retention Curves by Acquisition Cohort",
+       x = "Tenure (Months)", y = "Retention Rate",
+       color = "Cohort Year") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Churn Rate by Tenure Band
+
+```{r tenure-band, fig.width=8, fig.height=4, fig.cap="Figure 2: Churn Distribution by Tenure Band"}
+policyholders %>%
+  mutate(tenure_band = cut(policy_duration_months,
+                           breaks = c(0, 12, 24, 36, 48, 72),
+                           labels = c("0-12", "12-24", "24-36",
+                                      "36-48", "48+"))) %>%
+  count(tenure_band) %>%
+  ggplot(aes(x = tenure_band, y = n, fill = tenure_band)) +
+  geom_col(alpha = 0.85) +
+  geom_text(aes(label = n), vjust = -0.4, size = 3.5) +
+  scale_fill_brewer(palette = "Blues") +
+  labs(title = "Customer Count by Tenure Band",
+       x = "Tenure Band (Months)", y = "Customers") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+---
+
+# Key Findings
+
+- The **snapshot view** answers "what is the current state?" — useful for
+  reporting headline churn rates by segment.
+- The **cohort view** answers "how does retention evolve over tenure?" —
+  essential for understanding *when* customers leave, not just *how many*.
+- The **retention matrix** (Table 4) is the standard structure for cohort
+  analysis: rows are acquisition cohorts, columns are tenure milestones.
+  It connects directly to the survival curves from Part V.
+- Churn and survival are two views of the same phenomenon: churn rate at
+  tenure t equals 1 minus the survival probability S(t).
+- In **Lesson 18**, we fit **parametric churn models** (Weibull and
+  log-logistic) to these data structures, building on the survival
+  modelling foundation from Lessons 15–16.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
