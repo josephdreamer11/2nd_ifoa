@@ -1,0 +1,217 @@
+---
+title: "Parametric Churn Models: Weibull & Log-Logistic"
+subtitle: "Churn & Retention Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(survival)
+library(flexsurv)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    time  = policy_duration_months,
+    event = if_else(policy_duration_months < 60, 1, 0)
+  )
+
+fit_km <- survfit(Surv(time, event) ~ 1, data = policyholders)
+```
+
+# Overview
+
+This report fits and compares two parametric churn models — **Weibull**
+and **Log-Logistic** — to the policyholder retention data, focusing on
+the difference in their hazard shapes and which better describes churn
+behaviour.
+
+Portfolio: **`r nrow(policyholders)`** policyholders,
+**`r sum(policyholders$event)`** churn events,
+**`r sum(1 - policyholders$event)`** censored.
+
+---
+
+# Why Log-Logistic for Churn?
+
+The Weibull hazard is **monotone** — it can only increase or decrease
+with tenure. The Log-Logistic hazard can be **non-monotone** —
+rising then falling — which often matches real churn: low risk at
+onboarding, a peak in the early-mid tenure, then declining risk for
+loyal long-tenure customers.
+
+---
+
+# Fit Both Models
+
+```{r fit-models, echo=TRUE}
+fit_weib <- survreg(Surv(time, event) ~ 1,
+                    data = policyholders, dist = "weibull")
+
+fit_llog <- survreg(Surv(time, event) ~ 1,
+                    data = policyholders, dist = "loglogistic")
+```
+
+## Parameter Extraction
+
+```{r extract-params, echo=TRUE}
+# Weibull
+k_weib      <- 1 / fit_weib$scale
+lambda_weib <- exp(coef(fit_weib)[1])
+
+# Log-logistic
+shape_llog  <- 1 / fit_llog$scale
+scale_llog  <- exp(coef(fit_llog)[1])
+
+cat("Weibull       — shape:", round(k_weib, 3),
+    " scale:", round(lambda_weib, 1), "\n")
+cat("Log-Logistic  — shape:", round(shape_llog, 3),
+    " scale:", round(scale_llog, 1), "\n")
+```
+
+---
+
+# Survival Curves vs Kaplan-Meier
+
+```{r survival-compare, fig.width=8, fig.height=5,fig.cap="Figure 1: KM vs Weibull vs Log-Logistic Survival Curves"}
+t_seq <- seq(0, 72, by = 0.5)
+
+S_weib <- exp(-(t_seq / lambda_weib)^k_weib)
+S_llog <- 1 / (1 + (t_seq / scale_llog)^shape_llog)
+
+km_df <- tibble(time = c(0, fit_km$time),
+                surv = c(1, fit_km$surv),
+                model = "Kaplan-Meier")
+
+parametric_df <- bind_rows(
+  tibble(time = t_seq, surv = S_weib, model = "Weibull"),
+  tibble(time = t_seq, surv = S_llog, model = "Log-Logistic")
+)
+
+ggplot() +
+  geom_step(data = km_df, aes(x = time, y = surv, color = model),
+            linewidth = 0.8) +
+  geom_line(data = parametric_df,
+            aes(x = time, y = surv, color = model),
+            linewidth = 0.8, linetype = "dashed") +
+  scale_color_manual(values = c("Kaplan-Meier" = "#2c7bb6",
+                                 "Weibull"      = "#d7191c",
+                                 "Log-Logistic" = "#1a9641")) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent_format()) +
+  scale_x_continuous(breaks = seq(0, 72, 12)) +
+  labs(title    = "Survival Curves: KM vs Parametric Churn Models",
+       subtitle = "Step = KM | Dashed = parametric fits",
+       x = "Tenure (Months)", y = "Survival Probability S(t)",
+       color = "Model") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Hazard Functions — The Key Difference
+
+```{r hazard-compare, fig.width=8, fig.height=4,fig.cap="Figure 2: Hazard Functions — Weibull (monotone) vs Log-Logistic (non-monotone)"}
+h_weib <- (k_weib / lambda_weib) * (t_seq / lambda_weib)^(k_weib - 1)
+
+# Log-logistic hazard
+num    <- (shape_llog / scale_llog) * (t_seq / scale_llog)^(shape_llog - 1)
+den    <- 1 + (t_seq / scale_llog)^shape_llog
+h_llog <- num / den
+
+tibble(
+  time   = rep(t_seq, 2),
+  hazard = c(h_weib, h_llog),
+  model  = rep(c("Weibull", "Log-Logistic"), each = length(t_seq))
+) %>%
+  filter(time > 0) %>%
+  ggplot(aes(x = time, y = hazard, color = model)) +
+  geom_line(linewidth = 0.9) +
+  scale_color_manual(values = c("Weibull"      = "#d7191c",
+                                 "Log-Logistic" = "#1a9641")) +
+  labs(title    = "Hazard Functions: Weibull vs Log-Logistic",
+       subtitle = "Weibull is monotone; Log-Logistic can rise then fall",
+       x = "Tenure (Months)", y = "Churn Hazard h(t)",
+       color = "Model") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Model Comparison
+
+```{r aic-table}
+tibble(
+  Model = c("Weibull", "Log-Logistic"),
+  `Log-Likelihood` = round(c(fit_weib$loglik[2],
+                              fit_llog$loglik[2]), 2),
+  AIC = round(c(AIC(fit_weib), AIC(fit_llog)), 2),
+  BIC = round(c(BIC(fit_weib), BIC(fit_llog)), 2)
+) %>%
+  arrange(AIC) %>%
+  mutate(`ΔAIC` = round(AIC - min(AIC), 2)) %>%
+  kable(caption = "Table 1: Weibull vs Log-Logistic — Model Comparison")
+```
+
+```{r best}
+best_churn <- if (AIC(fit_llog) < AIC(fit_weib)) "Log-Logistic" else "Weibull"
+```
+
+The **`r best_churn`** model is preferred by AIC for this churn data.
+
+---
+
+# Retention Estimates at Key Tenures
+
+```{r retention-table}
+tenures <- c(12, 24, 36, 48, 60)
+
+tibble(
+  `Tenure (Months)` = tenures,
+  `Kaplan-Meier` = paste0(
+    round(summary(fit_km, times = tenures)$surv * 100, 1), "%"),
+  `Weibull` = paste0(
+    round(exp(-(tenures / lambda_weib)^k_weib) * 100, 1), "%"),
+  `Log-Logistic` = paste0(
+    round((1 / (1 + (tenures / scale_llog)^shape_llog)) * 100, 1), "%")
+) %>%
+  kable(caption = "Table 2: Retention Rate Estimates at Key Tenures")
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+delta <- round(abs(AIC(fit_weib) - AIC(fit_llog)), 2)
+```
+
+- The **Weibull** hazard is monotone (shape k =
+  **`r round(k_weib, 3)`**), implying churn risk changes in a single
+  direction with tenure.
+- The **Log-Logistic** hazard is non-monotone when its shape parameter
+  exceeds 1 (shape = **`r round(shape_llog, 3)`**) — capturing an
+  early-tenure peak in churn followed by declining risk, a common
+  retention pattern.
+- The **`r best_churn`** model achieves the lower AIC
+  (ΔAIC = **`r delta`**) and is preferred for this portfolio.
+- The choice of distribution materially affects long-tenure retention
+  projections — visible in the divergence between curves beyond 48
+  months in Figure 1.
+- In **Lesson 19**, we apply **smoothing and graduation** techniques
+  to produce regulatory-grade churn curves from these parametric fits.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
