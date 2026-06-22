@@ -1,0 +1,226 @@
+---
+title: "Churn Curve Smoothing & Graduation"
+subtitle: "Churn & Retention Modelling — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    time  = policy_duration_months,
+    event = if_else(policy_duration_months < 60, 1, 0)
+  )
+```
+
+# Overview
+
+This report demonstrates **graduation** — the actuarial practice of
+smoothing crude (observed) churn rates into a smooth, usable curve while
+preserving the underlying pattern in the data.
+
+We compute crude monthly churn hazards, then apply three smoothing
+methods — LOESS, smoothing spline, and a moving average — and assess the
+trade-off between **smoothness** and **adherence** to the raw data.
+
+Portfolio: **`r nrow(policyholders)`** policyholders,
+**`r sum(policyholders$event)`** churn events.
+
+---
+
+# Crude Churn Rates
+
+## Compute Raw Monthly Hazard
+
+```{r crude-rates, echo=TRUE}
+crude <- policyholders %>%
+  group_by(tenure = time) %>%
+  summarise(
+    at_risk = n(),
+    events  = sum(event),
+    .groups = "drop"
+  ) %>%
+  arrange(tenure) %>%
+  mutate(
+    # Number still at risk = total who reached this tenure
+    n_reaching = sum(at_risk) - lag(cumsum(at_risk), default = 0),
+    crude_hazard = events / n_reaching
+  ) %>%
+  filter(n_reaching > 0, tenure <= 60)
+```
+
+```{r crude-table}
+crude %>%
+  select(tenure, n_reaching, events, crude_hazard) %>%
+  filter(tenure %in% c(6, 12, 18, 24, 30, 36, 42, 48)) %>%
+  mutate(crude_hazard = round(crude_hazard, 4)) %>%
+  rename(`Tenure` = tenure, `At Risk` = n_reaching,
+         `Events` = events, `Crude Hazard` = crude_hazard) %>%
+  kable(caption = "Table 1: Crude Monthly Churn Hazard (sampled tenures)")
+```
+
+The crude hazards are noisy — especially at longer tenures where the
+at-risk population is small. Graduation addresses this.
+
+---
+
+# Method 1 — LOESS Smoothing
+
+```{r loess, echo=TRUE}
+loess_fit <- loess(crude_hazard ~ tenure,
+                   data = crude,
+                   span = 0.5)
+
+crude$loess_smooth <- predict(loess_fit)
+```
+
+---
+
+# Method 2 — Smoothing Spline
+
+```{r spline, echo=TRUE}
+spline_fit <- smooth.spline(x = crude$tenure,
+                            y = crude$crude_hazard,
+                            spar = 0.6)
+
+crude$spline_smooth <- predict(spline_fit, crude$tenure)$y
+```
+
+---
+
+# Method 3 — Moving Average
+
+```{r moving-avg, echo=TRUE}
+crude <- crude %>%
+  arrange(tenure) %>%
+  mutate(
+    ma_smooth = zoo::rollmean(crude_hazard, k = 5,
+                              fill = NA, align = "center")
+  )
+```
+
+---
+
+# Visual Comparison
+
+```{r comparison-plot, fig.width=9, fig.height=5,fig.cap="Figure 1: Crude vs Graduated Churn Hazards"}
+crude %>%
+  select(tenure, crude_hazard, loess_smooth,
+         spline_smooth, ma_smooth) %>%
+  pivot_longer(-tenure, names_to = "method", values_to = "hazard") %>%
+  mutate(method = recode(method,
+                         crude_hazard  = "Crude (raw)",
+                         loess_smooth  = "LOESS",
+                         spline_smooth = "Smoothing Spline",
+                         ma_smooth     = "Moving Average")) %>%
+  ggplot(aes(x = tenure, y = hazard, color = method)) +
+  geom_line(data = . %>% filter(method == "Crude (raw)"),
+            linewidth = 0.5, alpha = 0.5) +
+  geom_point(data = . %>% filter(method == "Crude (raw)"),
+             size = 1, alpha = 0.5) +
+  geom_line(data = . %>% filter(method != "Crude (raw)"),
+            linewidth = 1) +
+  scale_color_manual(values = c("Crude (raw)"      = "grey50",
+                                 "LOESS"            = "#d7191c",
+                                 "Smoothing Spline" = "#2c7bb6",
+                                 "Moving Average"   = "#1a9641")) +
+  labs(title  = "Crude vs Graduated Churn Hazards",
+       x = "Tenure (Months)", y = "Monthly Churn Hazard",
+       color = "Method") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Smoothness vs Adherence
+
+```{r smoothness-adherence}
+# Adherence: sum of squared differences from crude
+# Smoothness: sum of squared second differences
+
+assess <- function(smoothed, crude_vals) {
+  valid <- !is.na(smoothed) & !is.na(crude_vals)
+  s <- smoothed[valid]
+  c <- crude_vals[valid]
+  adherence  <- sum((s - c)^2)
+  smoothness <- sum(diff(diff(s))^2)
+  c(adherence = adherence, smoothness = smoothness)
+}
+
+results <- bind_rows(
+  LOESS              = assess(crude$loess_smooth,  crude$crude_hazard),
+  `Smoothing Spline` = assess(crude$spline_smooth, crude$crude_hazard),
+  `Moving Average`   = assess(crude$ma_smooth,     crude$crude_hazard),
+  .id = "Method"
+)
+
+results %>%
+  mutate(adherence  = round(adherence, 6),
+         smoothness = round(smoothness, 8)) %>%
+  rename(`Adherence (SS deviation)` = adherence,
+         `Roughness (SS 2nd diff)`  = smoothness) %>%
+  kable(caption = "Table 2: Smoothness vs Adherence Trade-off")
+```
+
+Lower **adherence** values mean the smoothed curve stays closer to the
+raw data. Lower **roughness** values mean the curve is smoother. The two
+objectives compete — the actuary's task is to balance them.
+
+---
+
+# Graduated Retention Curve
+
+```{r graduated-survival, fig.width=8, fig.height=5,fig.cap="Figure 2: Retention Curve from Graduated Hazards (LOESS)"}
+crude_surv <- crude %>%
+  arrange(tenure) %>%
+  mutate(
+    haz_graduated = pmax(loess_smooth, 0),
+    surv_graduated = cumprod(1 - haz_graduated)
+  )
+
+ggplot(crude_surv, aes(x = tenure, y = surv_graduated)) +
+  geom_line(color = "#2c7bb6", linewidth = 0.9) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent_format()) +
+  scale_x_continuous(breaks = seq(0, 60, 12)) +
+  labs(title    = "Graduated Retention Curve",
+       subtitle = "Derived from LOESS-smoothed monthly hazards",
+       x = "Tenure (Months)", y = "Retention S(t)") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Key Findings
+
+- **Crude churn hazards** are volatile, especially at longer tenures
+  where the at-risk population shrinks. They are unsuitable for direct
+  use in pricing or reserving.
+- **Graduation** smooths these rates while preserving the underlying
+  pattern. LOESS and smoothing splines both produce continuous curves;
+  the moving average is simpler but loses data at the series ends.
+- The **smoothness-adherence trade-off** (Table 2) is the central tension
+  in graduation: too much smoothing distorts the real pattern, too little
+  leaves noise. The actuary selects the balance appropriate to the use.
+- The **graduated retention curve** (Figure 2) is built by accumulating
+  the smoothed hazards via `cumprod(1 - h)` — the discrete survival
+  relationship.
+- In **Lesson 20**, we bring the full Part VI toolkit together in an
+  applied end-to-end churn analysis project.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
