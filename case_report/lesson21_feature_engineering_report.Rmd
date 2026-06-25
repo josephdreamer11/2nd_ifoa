@@ -1,0 +1,202 @@
+---
+title: "Feature Engineering for Churn"
+subtitle: "Applied Predictive & Causal Analytics — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(knitr)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    policy_start_date = as.Date(policy_start_date),
+    churned = if_else(policy_duration_months < 24, 1, 0)
+  )
+```
+
+# Overview
+
+This report engineers a model-ready feature set for churn prediction from
+the **`r nrow(policyholders)`-policyholder** portfolio. The output feeds
+directly into the GLM (Lesson 22) and machine-learning models (Lesson 23).
+
+Target variable: **churned** (1 if tenure < 24 months).
+Base churn rate: **`r paste0(round(mean(policyholders$churned)*100,1),"%")`**.
+
+---
+
+# Step 1 — Derived Numeric Features
+
+```{r derived-numeric, echo=TRUE}
+features <- policyholders %>%
+  mutate(
+    # Ratio feature: claim amount per premium pound
+    claim_to_premium = claim_amount / annual_premium,
+    # Premium per month of tenure
+    premium_per_month = annual_premium / pmax(policy_duration_months, 1),
+    # Binary: high-value customer flag
+    high_value = if_else(annual_premium > median(annual_premium), 1, 0)
+  )
+```
+
+```{r derived-table}
+features %>%
+  select(policyholder_id, annual_premium, claim_amount,
+         claim_to_premium, premium_per_month, high_value) %>%
+  head(6) %>%
+  mutate(across(where(is.numeric), ~ round(., 3))) %>%
+  kable(caption = "Table 1: Derived Numeric Features (first 6 rows)")
+```
+
+---
+
+# Step 2 — Categorical Encoding
+
+```{r categorical, echo=TRUE}
+features <- features %>%
+  mutate(
+    age_band = cut(age,
+                   breaks = c(0, 35, 50, 65, 100),
+                   labels = c("Under35", "Age35_50", "Age50_65", "Over65")),
+    # Ensure factor type for modelling
+    policy_type = factor(policy_type),
+    region      = factor(region),
+    gender      = factor(gender)
+  )
+```
+
+```{r dummy-demo, echo=TRUE}
+# One-hot (dummy) encoding preview using model.matrix
+dummy_preview <- model.matrix(~ policy_type - 1,
+                              data = features) %>%
+  as_tibble() %>%
+  head(5)
+```
+
+```{r dummy-table}
+dummy_preview %>%
+  kable(caption = "Table 2: One-Hot Encoding of policy_type (first 5 rows)")
+```
+
+---
+
+# Step 3 — Feature Scaling
+
+```{r scaling, echo=TRUE}
+features <- features %>%
+  mutate(
+    age_scaled     = as.numeric(scale(age)),
+    premium_scaled = as.numeric(scale(annual_premium))
+  )
+```
+
+```{r scaling-table}
+features %>%
+  summarise(
+    `Age (mean)`        = round(mean(age), 1),
+    `Age scaled (mean)` = round(mean(age_scaled), 3),
+    `Age scaled (sd)`   = round(sd(age_scaled), 3)
+  ) %>%
+  kable(caption = "Table 3: Effect of Scaling (mean ≈ 0, sd ≈ 1)")
+```
+
+---
+
+# Step 4 — Feature Usefulness Check
+
+```{r feature-check}
+feature_assoc <- features %>%
+  group_by(churned) %>%
+  summarise(
+    `Avg Age`              = round(mean(age), 1),
+    `Avg Premium`          = round(mean(annual_premium), 0),
+    `Avg Claim/Premium`    = round(mean(claim_to_premium), 3),
+    `% High Value`         = round(mean(high_value) * 100, 1),
+    .groups = "drop"
+  ) %>%
+  mutate(Group = if_else(churned == 1, "Churned", "Retained")) %>%
+  select(Group, everything(), -churned)
+```
+
+```{r feature-check-table}
+feature_assoc %>%
+  kable(caption = "Table 4: Feature Averages by Churn Status")
+```
+
+```{r feature-check-plot, fig.width=8, fig.height=4,fig.cap="Figure 1: Claim-to-Premium Ratio by Churn Status"}
+features %>%
+  mutate(Status = if_else(churned == 1, "Churned", "Retained")) %>%
+  filter(claim_to_premium < quantile(claim_to_premium, 0.95)) %>%
+  ggplot(aes(x = Status, y = claim_to_premium, fill = Status)) +
+  geom_boxplot(alpha = 0.75) +
+  scale_fill_manual(values = c("Churned"  = "#d7191c",
+                                "Retained" = "#2c7bb6")) +
+  labs(title = "Claim-to-Premium Ratio by Churn Status",
+       x = NULL, y = "Claim / Premium Ratio") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+---
+
+# Step 5 — Assemble Model-Ready Dataset
+
+```{r assemble, echo=TRUE}
+model_data <- features %>%
+  select(
+    churned,                      # target
+    age_band, policy_type,        # categorical
+    region, gender,
+    claim_to_premium,             # engineered numeric
+    premium_per_month, high_value,
+    age_scaled, premium_scaled    # scaled numeric
+  )
+```
+
+```{r assemble-summary}
+tibble(
+  `Feature Type` = c("Target", "Categorical", "Engineered Numeric",
+                     "Scaled Numeric", "Total Columns"),
+  Count = c(
+    1,
+    sum(map_lgl(model_data, is.factor)),
+    3,
+    2,
+    ncol(model_data)
+  )
+) %>%
+  kable(caption = "Table 5: Model-Ready Dataset Composition")
+```
+
+---
+
+# Key Findings
+
+- Three categories of features were engineered: **derived numeric**
+  (ratios and per-unit metrics), **encoded categorical** (factors and
+  one-hot dummies), and **scaled numeric** (standardised to mean 0, sd 1).
+- The **feature usefulness check** (Table 4) shows churned and retained
+  customers differ across the engineered features — confirming they carry
+  predictive signal before any model is fitted.
+- **Scaling** matters for distance- and gradient-based models (covered in
+  Lesson 23); tree-based models are scale-invariant and do not require it.
+- The assembled **model-ready dataset** (`r ncol(model_data)` columns)
+  is the input for **Lesson 22**, where we fit a logistic regression /
+  GLM to predict churn.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
