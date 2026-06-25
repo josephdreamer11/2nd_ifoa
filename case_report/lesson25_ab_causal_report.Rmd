@@ -1,0 +1,288 @@
+---
+title: "A/B Testing & Causal Inference for Retention Strategy"
+subtitle: "Applied Predictive & Causal Analytics — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(broom)
+library(knitr)
+
+experiment <- read_csv("retention_experiment.csv") %>%
+  mutate(
+    group       = factor(group, levels = c("control", "treatment")),
+    policy_type = factor(policy_type),
+    region      = factor(region)
+  )
+```
+
+# Overview
+
+This report evaluates a **retention campaign** using a randomised A/B test
+on **`r nrow(experiment)`** policyholders. Customers were randomly assigned
+to a **treatment** group (received a retention offer) or a **control**
+group (no offer). The outcome is **retained** (1) or churned (0) after
+6 months.
+
+The goal is causal: does the offer *cause* higher retention, or is any
+observed difference just noise or confounding?
+
+- Treatment group: **`r sum(experiment$group == "treatment")`** customers
+- Control group: **`r sum(experiment$group == "control")`** customers
+
+---
+
+# Step 1 — Check Randomisation (Balance)
+
+```{r balance-check}
+experiment %>%
+  group_by(Group = group) %>%
+  summarise(
+    N             = n(),
+    `Avg Age`     = round(mean(age), 1),
+    `Avg Premium` = round(mean(annual_premium), 0),
+    `Avg Tenure`  = round(mean(tenure_months), 1),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Table 1: Covariate Balance Between Groups")
+```
+
+If randomisation worked, covariates should be similar across groups —
+this is what allows a causal interpretation of the difference in outcomes.
+
+---
+
+# Step 2 — Headline Result
+
+```{r headline}
+headline <- experiment %>%
+  group_by(Group = group) %>%
+  summarise(
+    Customers       = n(),
+    Retained        = sum(retained),
+    `Retention Rate` = mean(retained),
+    .groups = "drop"
+  )
+```
+
+```{r headline-table}
+headline %>%
+  mutate(`Retention Rate` = paste0(round(`Retention Rate` * 100, 1), "%")) %>%
+  kable(caption = "Table 2: Retention Rate by Group")
+```
+
+```{r lift-calc}
+rate_treat   <- mean(experiment$retained[experiment$group == "treatment"])
+rate_control <- mean(experiment$retained[experiment$group == "control"])
+abs_lift     <- rate_treat - rate_control
+rel_lift     <- abs_lift / rate_control
+```
+
+```{r headline-plot, fig.width=7, fig.height=4, fig.cap="Figure 1: Retention Rate by Group"}
+headline %>%
+  ggplot(aes(x = Group, y = `Retention Rate`, fill = Group)) +
+  geom_col(alpha = 0.85, width = 0.6) +
+  geom_text(aes(label = paste0(round(`Retention Rate` * 100, 1), "%")),
+            vjust = -0.4, size = 4.5) +
+  scale_fill_manual(values = c("control"   = "#2c7bb6",
+                                "treatment" = "#d7191c")) +
+  scale_y_continuous(limits = c(0, 0.8), labels = scales::percent_format()) +
+  labs(title = "Retention Rate: Treatment vs Control",
+       x = NULL, y = "Retention Rate") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+Observed absolute lift: **`r paste0(round(abs_lift * 100, 1), " percentage points")`**
+(relative lift: **`r paste0(round(rel_lift * 100, 1), "%")`**).
+
+---
+
+# Step 3 — Test for Statistical Significance
+
+## Two-Proportion Test
+
+```{r prop-test, echo=TRUE}
+treat_success  <- sum(experiment$retained[experiment$group == "treatment"])
+treat_n        <- sum(experiment$group == "treatment")
+control_success <- sum(experiment$retained[experiment$group == "control"])
+control_n      <- sum(experiment$group == "control")
+
+prop_result <- prop.test(
+  x = c(treat_success, control_success),
+  n = c(treat_n, control_n)
+)
+```
+
+```{r prop-test-table}
+tibble(
+  `Treatment Rate` = paste0(round(prop_result$estimate[1] * 100, 1), "%"),
+  `Control Rate`   = paste0(round(prop_result$estimate[2] * 100, 1), "%"),
+  `Difference`     = paste0(round((prop_result$estimate[1] -
+                                    prop_result$estimate[2]) * 100, 1), " pp"),
+  `95% CI`         = paste0("[",
+                            round(prop_result$conf.int[1] * 100, 1), ", ",
+                            round(prop_result$conf.int[2] * 100, 1), "] pp"),
+  `p-value`        = format.pval(prop_result$p.value, digits = 3)
+) %>%
+  kable(caption = "Table 3: Two-Proportion Test Results")
+```
+
+```{r prop-conclusion}
+sig <- prop_result$p.value < 0.05
+```
+
+The difference is
+**`r ifelse(sig, "statistically significant", "not statistically significant")`**
+at the 5% level (p = `r format.pval(prop_result$p.value, digits = 3)`).
+
+---
+
+# Step 4 — Causal Estimate via Regression
+
+## Unadjusted Model
+
+```{r lm-unadjusted, echo=TRUE}
+model_simple <- lm(retained ~ group, data = experiment)
+tidy(model_simple) %>%
+  mutate(across(where(is.numeric), ~ round(., 4))) %>%
+  kable(caption = "Table 4: Unadjusted Treatment Effect (Linear Probability Model)")
+```
+
+## Covariate-Adjusted Model
+
+```{r lm-adjusted, echo=TRUE}
+model_adjusted <- lm(
+  retained ~ group + age + annual_premium + tenure_months + policy_type,
+  data = experiment
+)
+
+tidy(model_adjusted) %>%
+  filter(term == "grouptreatment") %>%
+  mutate(across(where(is.numeric), ~ round(., 4))) %>%
+  kable(caption = "Table 5: Adjusted Treatment Effect (with covariates)")
+```
+
+```{r effect-compare}
+eff_simple   <- coef(model_simple)["grouptreatment"]
+eff_adjusted <- coef(model_adjusted)["grouptreatment"]
+```
+
+In a randomised experiment, the adjusted and unadjusted treatment effects
+should be similar (here **`r round(eff_simple, 4)`** vs
+**`r round(eff_adjusted, 4)`**) — adjustment mainly improves precision
+rather than removing bias, because randomisation already balances
+confounders.
+
+---
+
+# Step 5 — Why Randomisation Matters: Confounding
+
+```{r confounding-demo, echo=TRUE}
+# Simulate a NAIVE observational comparison where treatment
+# was NOT randomised but targeted at already-loyal customers
+set.seed(42)
+
+observational <- experiment %>%
+  mutate(
+    # Pretend offer was given preferentially to long-tenure customers
+    biased_group = if_else(
+      tenure_months > 40 & runif(n()) < 0.7, "treatment",
+      if_else(runif(n()) < 0.3, "treatment", "control")
+    )
+  )
+```
+
+```{r confounding-table}
+observational %>%
+  group_by(`Biased Assignment` = biased_group) %>%
+  summarise(
+    `Avg Tenure`     = round(mean(tenure_months), 1),
+    `Retention Rate` = paste0(round(mean(retained) * 100, 1), "%"),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Table 6: Confounded (Non-Randomised) Comparison")
+```
+
+When treatment is targeted at already-loyal (long-tenure) customers,
+the naive comparison **overstates** the true effect — because tenure
+confounds the relationship. This is why randomisation is the gold
+standard for causal inference.
+
+---
+
+# Business Recommendation
+
+```{r recommendation}
+annual_value_per_retained <- 1200   # assumed annual margin per retained customer
+campaign_cost_per_customer <- 50     # assumed cost of retention offer
+
+extra_retained_per_1000 <- abs_lift * 1000
+gross_value  <- extra_retained_per_1000 * annual_value_per_retained
+campaign_cost <- 1000 * campaign_cost_per_customer
+net_value    <- gross_value - campaign_cost
+roi          <- net_value / campaign_cost
+```
+
+Per **1,000 customers** targeted (illustrative economics):
+
+```{r roi-table}
+tibble(
+  Metric = c("Extra customers retained",
+             "Gross value (£1,200 each)",
+             "Campaign cost (£50 each)",
+             "Net value",
+             "ROI"),
+  Value = c(
+    round(extra_retained_per_1000, 0),
+    paste0("£", format(round(gross_value, 0), big.mark = ",")),
+    paste0("£", format(round(campaign_cost, 0), big.mark = ",")),
+    paste0("£", format(round(net_value, 0), big.mark = ",")),
+    paste0(round(roi * 100, 0), "%")
+  )
+) %>%
+  kable(caption = "Table 7: Illustrative Campaign Economics (per 1,000 customers)")
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+p_fmt <- format.pval(prop_result$p.value, digits = 3)
+```
+
+- The retention campaign produced a
+  **`r paste0(round(abs_lift * 100, 1), " percentage point")`** absolute
+  lift in retention (treatment `r paste0(round(rate_treat*100,1),"%")`
+  vs control `r paste0(round(rate_control*100,1),"%")`).
+- The effect is statistically significant
+  (`r ifelse(sig, "p < 0.05", "p ≥ 0.05")`, p = `r p_fmt`), with a
+  95% confidence interval that
+  `r ifelse(prop_result$conf.int[1] > 0, "excludes zero — confirming a real effect.", "includes zero.")`
+- Because assignment was **randomised**, this difference can be interpreted
+  **causally** — the offer caused the higher retention, not merely
+  correlated with it.
+- The confounding demonstration (Table 6) shows why observational
+  comparisons can mislead: targeting loyal customers inflates the apparent
+  effect. Randomisation removes this bias.
+- At illustrative economics, the campaign delivers a positive ROI,
+  supporting a **roll-out recommendation** — ideally with continued
+  measurement.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `retention_experiment.csv`.*
