@@ -1,0 +1,234 @@
+---
+title: "Machine Learning Models for Churn: RF & XGBoost"
+subtitle: "Applied Predictive & Causal Analytics — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(randomForest)
+library(xgboost)
+library(pROC)
+library(knitr)
+
+set.seed(42)
+
+policyholders <- read_csv("L2_policyholders.csv") %>%
+  mutate(
+    churned     = if_else(policy_duration_months < 24, 1, 0),
+    age_band    = cut(age, breaks = c(0, 35, 50, 65, 100),
+                      labels = c("Under35", "Age35_50", "Age50_65", "Over65")),
+    policy_type = factor(policy_type),
+    region      = factor(region),
+    gender      = factor(gender),
+    claim_to_premium = claim_amount / annual_premium
+  )
+
+train_idx <- sample(nrow(policyholders), 0.7 * nrow(policyholders))
+train <- policyholders[train_idx, ]
+test  <- policyholders[-train_idx, ]
+```
+
+# Overview
+
+This report fits two tree-based machine-learning models — **Random Forest**
+and **XGBoost** — to predict churn, and benchmarks them against the
+logistic regression GLM from Lesson 22.
+
+Data: **`r nrow(policyholders)`** policyholders
+(**`r nrow(train)`** train / **`r nrow(test)`** test).
+
+---
+
+# Model 1 — Random Forest
+
+```{r rf-fit, echo=TRUE}
+rf_model <- randomForest(
+  factor(churned) ~ age_band + policy_type + annual_premium +
+                    claim_to_premium + region + gender,
+  data       = train,
+  ntree      = 500,
+  importance = TRUE
+)
+```
+
+```{r rf-predict, echo=TRUE}
+rf_prob <- predict(rf_model, newdata = test, type = "prob")[, "1"]
+rf_auc  <- as.numeric(auc(roc(test$churned, rf_prob, quiet = TRUE)))
+```
+
+## Variable Importance
+
+```{r rf-importance, fig.width=8, fig.height=4, fig.cap="Figure 1: Random Forest Variable Importance"}
+importance(rf_model) %>%
+  as.data.frame() %>%
+  rownames_to_column("variable") %>%
+  arrange(desc(MeanDecreaseGini)) %>%
+  ggplot(aes(x = reorder(variable, MeanDecreaseGini),
+             y = MeanDecreaseGini)) +
+  geom_col(fill = "#2c7bb6", alpha = 0.85) +
+  coord_flip() +
+  labs(title = "Random Forest — Variable Importance",
+       x = NULL, y = "Mean Decrease in Gini") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Model 2 — XGBoost
+
+```{r xgb-prep, echo=TRUE}
+# XGBoost needs a numeric matrix; one-hot encode predictors
+feature_formula <- ~ age_band + policy_type + annual_premium +
+                     claim_to_premium + region + gender - 1
+
+train_matrix <- model.matrix(feature_formula, data = train)
+test_matrix  <- model.matrix(feature_formula, data = test)
+
+dtrain <- xgb.DMatrix(data = train_matrix, label = train$churned)
+dtest  <- xgb.DMatrix(data = test_matrix,  label = test$churned)
+```
+
+```{r xgb-fit, echo=TRUE}
+# NOTE on xgboost versions:
+# In xgboost 2.x / 3.x the high-level xgboost() wrapper was rewritten with a
+# scikit-learn-style interface: it now expects x = / y = (not data = / label =),
+# learning_rate (not eta), and no longer accepts verbose. Calling the old
+# xgboost(data = dtrain, eta = ..., verbose = 0) form therefore errors with
+# "argument 'y' is missing".
+#
+# The low-level xgb.train() below is STABLE across all versions because it
+# takes an xgb.DMatrix plus a params list. Prefer it for reproducible code.
+params <- list(
+  objective   = "binary:logistic",
+  max_depth   = 4,
+  eta         = 0.1,          # learning rate (xgb.train still accepts 'eta')
+  eval_metric = "auc"
+)
+
+xgb_model <- xgb.train(
+  params  = params,
+  data    = dtrain,
+  nrounds = 100,
+  verbose = 0
+)
+```
+
+```{r xgb-predict, echo=TRUE}
+xgb_prob <- predict(xgb_model, newdata = dtest)
+xgb_auc  <- as.numeric(auc(roc(test$churned, xgb_prob, quiet = TRUE)))
+```
+
+## Feature Importance
+
+```{r xgb-importance, fig.width=8, fig.height=4, fig.cap="Figure 2: XGBoost Feature Importance (top 10)"}
+xgb.importance(model = xgb_model) %>%
+  head(10) %>%
+  ggplot(aes(x = reorder(Feature, Gain), y = Gain)) +
+  geom_col(fill = "#1a9641", alpha = 0.85) +
+  coord_flip() +
+  labs(title = "XGBoost — Feature Importance (Gain)",
+       x = NULL, y = "Gain") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Benchmark: GLM vs RF vs XGBoost
+
+```{r glm-benchmark, echo=TRUE}
+# Refit GLM for comparison (Lesson 22)
+glm_model <- glm(churned ~ age_band + policy_type + annual_premium +
+                           claim_to_premium + region,
+                 data = train, family = binomial)
+
+glm_prob <- predict(glm_model, newdata = test, type = "response")
+glm_auc  <- as.numeric(auc(roc(test$churned, glm_prob, quiet = TRUE)))
+```
+
+```{r benchmark-table}
+tibble(
+  Model = c("Logistic GLM", "Random Forest", "XGBoost"),
+  AUC   = round(c(glm_auc, rf_auc, xgb_auc), 3),
+  Interpretability = c("High (odds ratios)",
+                       "Medium (importance only)",
+                       "Medium (importance only)")
+) %>%
+  arrange(desc(AUC)) %>%
+  kable(caption = "Table 1: Model Benchmark — AUC and Interpretability")
+```
+
+```{r best-model}
+aucs <- c(`Logistic GLM` = glm_auc,
+          `Random Forest` = rf_auc,
+          XGBoost = xgb_auc)
+best_model <- names(which.max(aucs))
+```
+
+The highest AUC is achieved by **`r best_model`**.
+
+## ROC Curves Overlaid
+
+```{r roc-overlay, fig.width=7, fig.height=5, fig.cap="Figure 3: ROC Curves — GLM vs RF vs XGBoost"}
+roc_data <- bind_rows(
+  tibble(fpr = 1 - roc(test$churned, glm_prob, quiet = TRUE)$specificities,
+         tpr = roc(test$churned, glm_prob, quiet = TRUE)$sensitivities,
+         model = "Logistic GLM"),
+  tibble(fpr = 1 - roc(test$churned, rf_prob, quiet = TRUE)$specificities,
+         tpr = roc(test$churned, rf_prob, quiet = TRUE)$sensitivities,
+         model = "Random Forest"),
+  tibble(fpr = 1 - roc(test$churned, xgb_prob, quiet = TRUE)$specificities,
+         tpr = roc(test$churned, xgb_prob, quiet = TRUE)$sensitivities,
+         model = "XGBoost")
+)
+
+ggplot(roc_data, aes(x = fpr, y = tpr, color = model)) +
+  geom_line(linewidth = 0.9) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  scale_color_manual(values = c("Logistic GLM"  = "#d7191c",
+                                 "Random Forest" = "#2c7bb6",
+                                 "XGBoost"       = "#1a9641")) +
+  scale_x_continuous(labels = scales::percent_format()) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(title = "ROC Curve Comparison",
+       x = "False Positive Rate", y = "True Positive Rate",
+       color = "Model") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Key Findings
+
+```{r kf-vals, include=FALSE}
+auc_gap <- round(max(aucs) - glm_auc, 3)
+```
+
+- **`r best_model`** achieves the highest test-set AUC. The gap over the
+  interpretable GLM benchmark is **`r auc_gap`** AUC points.
+- Tree-based models capture **non-linear effects and interactions**
+  automatically, without manual feature engineering — but at the cost of
+  the direct interpretability the GLM provides through odds ratios.
+- **Variable importance** (Figures 1–2) offers partial interpretability:
+  it ranks predictors but does not give signed, quantitative effects.
+- The practical choice depends on context: regulated pricing favours the
+  transparent GLM; an internal retention-targeting tool may favour the
+  higher-AUC machine-learning model.
+- In **Lesson 24**, we shift from prediction to **customer segmentation**
+  using unsupervised methods (k-means and hierarchical clustering).
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
