@@ -1,0 +1,227 @@
+---
+title: "Customer Segmentation: K-means & Hierarchical Clustering"
+subtitle: "Applied Predictive & Causal Analytics — Actuarial Analytics Division"
+author: "Actuarial Analytics Team"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r load-data}
+library(tidyverse)
+library(knitr)
+
+set.seed(42)
+
+policyholders <- read_csv("L2_policyholders.csv")
+```
+
+# Overview
+
+This report segments the **`r nrow(policyholders)`-policyholder** portfolio
+into distinct customer groups using **k-means** and **hierarchical
+clustering** — unsupervised methods that find structure without a target
+variable.
+
+Segmentation supports differentiated pricing, targeted retention, and
+portfolio risk management.
+
+---
+
+# Step 1 — Prepare and Scale Features
+
+```{r prepare, echo=TRUE}
+# Select numeric features for clustering
+cluster_features <- policyholders %>%
+  select(age, annual_premium, policy_duration_months, claim_amount)
+
+# Scaling is essential — clustering is distance-based
+scaled_features <- scale(cluster_features)
+```
+
+```{r scale-check}
+tibble(
+  Feature = colnames(scaled_features),
+  `Original Mean` = round(colMeans(cluster_features), 1),
+  `Scaled Mean`   = round(colMeans(scaled_features), 3),
+  `Scaled SD`     = round(apply(scaled_features, 2, sd), 3)
+) %>%
+  kable(caption = "Table 1: Effect of Scaling (scaled mean ≈ 0, sd ≈ 1)")
+```
+
+---
+
+# Step 2 — Choose k with the Elbow Method
+
+```{r elbow, echo=TRUE}
+wss <- map_dbl(1:10, function(k) {
+  kmeans(scaled_features, centers = k, nstart = 25)$tot.withinss
+})
+```
+
+```{r elbow-plot, fig.width=8, fig.height=4, fig.cap="Figure 1: Elbow Method — Within-Cluster Sum of Squares"}
+tibble(k = 1:10, wss = wss) %>%
+  ggplot(aes(x = k, y = wss)) +
+  geom_line(color = "#2c7bb6", linewidth = 0.9) +
+  geom_point(size = 2.5, color = "#2c7bb6") +
+  geom_vline(xintercept = 4, linetype = "dashed", color = "#d7191c") +
+  scale_x_continuous(breaks = 1:10) +
+  labs(title    = "Elbow Method for Optimal k",
+       subtitle = "Red line = chosen k = 4",
+       x = "Number of Clusters (k)",
+       y = "Total Within-Cluster Sum of Squares") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Step 3 — K-means Clustering
+
+```{r kmeans, echo=TRUE}
+k <- 4
+km_result <- kmeans(scaled_features, centers = k, nstart = 25)
+
+# Attach cluster labels
+policyholders$cluster <- factor(km_result$cluster)
+```
+
+## Cluster Profiles
+
+```{r cluster-profile}
+policyholders %>%
+  group_by(Cluster = cluster) %>%
+  summarise(
+    Size          = n(),
+    `Avg Age`     = round(mean(age), 1),
+    `Avg Premium` = round(mean(annual_premium), 0),
+    `Avg Tenure`  = round(mean(policy_duration_months), 1),
+    `Avg Claim`   = round(mean(claim_amount), 0),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Table 2: K-means Cluster Profiles")
+```
+
+## Cluster Visualisation
+
+```{r cluster-plot, fig.width=8, fig.height=5, fig.cap="Figure 2: Clusters by Age and Annual Premium"}
+policyholders %>%
+  ggplot(aes(x = age, y = annual_premium, color = cluster)) +
+  geom_point(alpha = 0.6, size = 1.8) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_continuous(labels = scales::comma_format(prefix = "£")) +
+  labs(title = "Customer Segments by Age and Premium",
+       x = "Age", y = "Annual Premium (£)",
+       color = "Cluster") +
+  theme_minimal(base_size = 12)
+```
+
+---
+
+# Step 4 — Hierarchical Clustering
+
+```{r hclust, echo=TRUE}
+# Use a sample for a readable dendrogram
+set.seed(42)
+sample_idx <- sample(nrow(scaled_features), 50)
+sample_scaled <- scaled_features[sample_idx, ]
+
+# Distance matrix + linkage
+dist_matrix <- dist(sample_scaled, method = "euclidean")
+hc <- hclust(dist_matrix, method = "ward.D2")
+```
+
+```{r dendrogram, fig.width=9, fig.height=5, fig.cap="Figure 3: Hierarchical Clustering Dendrogram (50 sampled customers)"}
+plot(hc, labels = FALSE, hang = -1,
+     main = "Hierarchical Clustering Dendrogram (Ward linkage)",
+     xlab = "Customers", ylab = "Height (dissimilarity)",
+     sub = "")
+rect.hclust(hc, k = 4, border = c("#d7191c", "#2c7bb6",
+                                   "#1a9641", "#fdae61"))
+```
+
+## Compare Cluster Assignments
+
+```{r hclust-compare}
+hc_clusters <- cutree(hc, k = 4)
+
+tibble(
+  `Hierarchical Cluster` = factor(hc_clusters)
+) %>%
+  count(`Hierarchical Cluster`) %>%
+  rename(`Customers (in sample)` = n) %>%
+  kable(caption = "Table 3: Hierarchical Cluster Sizes (50-customer sample)")
+```
+
+---
+
+# Step 5 — Segment Naming & Interpretation
+
+```{r segment-naming}
+segment_summary <- policyholders %>%
+  group_by(cluster) %>%
+  summarise(
+    size           = n(),
+    avg_premium    = mean(annual_premium),
+    avg_tenure     = mean(policy_duration_months),
+    avg_claim      = mean(claim_amount),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    segment_label = case_when(
+      avg_premium > median(avg_premium) & avg_tenure > median(avg_tenure)
+        ~ "High-Value Loyal",
+      avg_premium > median(avg_premium) & avg_tenure <= median(avg_tenure)
+        ~ "High-Value At-Risk",
+      avg_premium <= median(avg_premium) & avg_tenure > median(avg_tenure)
+        ~ "Budget Loyal",
+      TRUE
+        ~ "Budget New/At-Risk"
+    )
+  )
+```
+
+```{r segment-table}
+segment_summary %>%
+  mutate(
+    avg_premium = paste0("£", round(avg_premium, 0)),
+    avg_tenure  = round(avg_tenure, 1),
+    avg_claim   = paste0("£", round(avg_claim, 0))
+  ) %>%
+  select(Cluster = cluster, Size = size,
+         `Avg Premium` = avg_premium,
+         `Avg Tenure` = avg_tenure,
+         `Avg Claim` = avg_claim,
+         `Segment Label` = segment_label) %>%
+  kable(caption = "Table 4: Named Customer Segments")
+```
+
+---
+
+# Key Findings
+
+- **Scaling is essential** before clustering — without it, `annual_premium`
+  (range in thousands) would dominate `age` (range in tens), distorting
+  all distance calculations.
+- The **elbow method** (Figure 1) guides the choice of k by identifying
+  where adding clusters stops meaningfully reducing within-cluster variance.
+- **K-means** assigns every customer to one of k segments; **hierarchical
+  clustering** builds a tree (dendrogram) showing how segments nest,
+  letting the analyst choose the cut level after seeing the structure.
+- The named segments (Table 4) translate abstract clusters into
+  actionable customer types — directly usable for differentiated pricing
+  and retention strategy.
+- In **Lesson 25** — the final lesson — we apply **A/B testing and causal
+  inference** to evaluate whether retention interventions actually work.
+
+---
+
+*Report generated automatically using R Markdown.
+Data source: `policyholders.csv`.*
